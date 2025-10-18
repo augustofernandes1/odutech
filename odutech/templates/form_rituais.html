@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Ficha Iniciático • {{ cliente.nome }} - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="sidebar-logo">
+      <h3>ODÚ TECH</h3>
+    </div>
+
+    <div class="sidebar-menu">
+      <h6 class="sidebar-title">Cadastros</h6>
+      <a href="{{ url_for('novo_cliente') }}" class="sidebar-link">
+        <i class="bi bi-person-plus"></i><span>Cadastrar Clientes</span>
+      </a>
+      <a href="{{ url_for('novo_produto') }}" class="sidebar-link">
+        <i class="bi bi-box-seam"></i><span>Registrar Produtos</span>
+      </a>
+      <a href="{{ url_for('novo_atendimento') }}" class="sidebar-link">
+        <i class="bi bi-calendar-check"></i><span>Registrar Atendimento</span>
+      </a>
+
+      <h6 class="sidebar-title">Visualizações</h6>
+      <a href="{{ url_for('atendimentos_lista') }}" class="sidebar-link">
+        <i class="bi bi-cash-coin"></i><span>Ver Todas as Vendas</span>
+      </a>
+      <a href="{{ url_for('produtos') }}" class="sidebar-link">
+        <i class="bi bi-boxes"></i><span>Ver Todos os Produtos</span>
+      </a>
+      <a href="{{ url_for('clientes') }}" class="sidebar-link">
+        <i class="bi bi-people"></i><span>Ver Todos os Clientes</span>
+      </a>
+      <a href="{{ url_for('perfil', id_usuario=current_user.id) }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('sair') }}" class="sidebar-link">
+        <i class="bi bi-box-arrow-right"></i><span>Sair</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="dashboard-content">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="d-flex align-items-center justify-content-center">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="me-3" style="height:50px;">
+        <h1>Ficha Iniciático</h1>
+      </div>
+      <p class="welcome-text">
+        Atualize os dados rituais de <strong>{{ cliente.nome }}</strong>
+      </p>
+    </div>
+
+    <!-- Card do formulário -->
+    <div class="card" style="background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
+      <div class="card-body">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Navalha (Quem iniciou)</label>
+              {{ form.navalha(class="form-control") }}
+              {% for e in form.navalha.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Babakekere (Pai Pequeno)</label>
+              {{ form.babakekere(class="form-control") }}
+              {% for e in form.babakekere.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Iyakekere (Mãe Pequena)</label>
+              {{ form.iyakekere(class="form-control") }}
+              {% for e in form.iyakekere.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Ojubonã (Pai/Mãe Criador(a))</label>
+              {{ form.ojubona(class="form-control") }}
+              {% for e in form.ojubona.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Padrinho de Orunkó</label>
+              {{ form.padrinho(class="form-control") }}
+              {% for e in form.padrinho.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Madrinha de Orunkó</label>
+              {{ form.madrinha(class="form-control") }}
+              {% for e in form.madrinha.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <!-- Campos adicionados/ajustados -->
+            <div class="col-md-4">
+              <label class="form-label">Orunkó</label>
+              {{ form.orunko(class="form-control") }}
+              {% for e in form.orunko.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Orixá</label>
+              {{ form.orixa(class="form-control") }}
+              {% for e in form.orixa.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Ajuntó</label>
+              {{ form.ajunto(class="form-control") }}
+              {% for e in form.ajunto.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Orixás Assentados (separe por vírgula)</label>
+              {{ form.orixas_assentados_raw(class="form-control") }}
+              {% for e in form.orixas_assentados_raw.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+              <div class="form-text text-muted">Ex.: Xangô, Oxum, Ogum</div>
+            </div>
+
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <a href="{{ url_for('cliente_detalhes', id=cliente.id) }}" class="btn btn-outline-danger">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save"></i> Salvar Ficha
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+:root{
+  --dark-bg:#1a1a2e; --text-light:#f8f9fa; --text-muted:#6c757d;
+  --primary-color:#7c3aed; --secondary-color:#2563eb; --sidebar-width:280px;
+}
+body{ background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%); color:var(--text-light);
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:0; min-height:100vh; }
+.dashboard-wrapper{ display:flex; min-height:100vh; }
+
+/* Sidebar */
+.sidebar{ width:var(--sidebar-width); background:rgba(15,23,42,.95); backdrop-filter:blur(10px);
+  border-right:1px solid rgba(255,255,255,.1); padding:20px 0; display:flex; flex-direction:column;
+  position:fixed; height:100vh; overflow-y:auto; z-index:1000; }
+.sidebar-header{ padding:0 20px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,.1); margin-bottom:20px; }
+.sidebar-logo{ max-width:80px; margin-bottom:10px; border-radius:10px; }
+.sidebar-header h3{ color:var(--text-light); font-size:1.2rem; font-weight:600; margin:0; }
+.sidebar-menu{ flex:1; padding:0 15px; }
+.sidebar-title{ color:var(--text-muted); font-size:.8rem; text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px; padding-left:10px; }
+.sidebar-link{ display:flex; align-items:center; padding:12px 15px; color:var(--text-light); text-decoration:none; border-radius:8px; margin-bottom:5px; transition:.3s; }
+.sidebar-link:hover,.sidebar-link.active{ background:rgba(37,99,235,.2); transform:translateX(5px); }
+.sidebar-link i{ margin-right:12px; font-size:1.1rem; width:20px; text-align:center; }
+.sidebar-footer{ padding:15px; border-top:1px solid rgba(255,255,255,.1); }
+
+/* Conteúdo */
+.dashboard-content{ flex:1; margin-left:var(--sidebar-width); padding:20px; }
+.dashboard-header{ text-align:center; margin-bottom:30px; padding:25px; background:rgba(255,255,255,.05); border-radius:15px; box-shadow:0 8px 32px rgba(0,0,0,.2); }
+.dashboard-header h1{ font-size:2.6rem; font-weight:700; margin:0; }
+.welcome-text{ font-size:1.05rem; margin-top:8px; opacity:.9; }
+
+/* Inputs */
+.form-control{ background: rgba(15,23,42,.5); color:#f8f9fa; border:1px solid rgba(255,255,255,.1); }
+.form-control:focus{
+  background: rgba(15,23,42,.7); color:#f8f9fa;
+  border-color: rgba(37,99,235,.5); box-shadow: 0 0 0 0.25rem rgba(37,99,235,.25);
+}
+
+/* Botões */
+.btn{ border-radius:8px; font-weight:600; transition:.3s; }
+.btn-primary{ background:linear-gradient(135deg,var(--primary-color),var(--secondary-color)); border:none; color:#fff; }
+.btn-outline-danger{ border:none; background:rgba(239,68,68,.15); color:#ef4444; }
+.btn-outline-danger:hover{ background:#ef4444; color:#fff; }
+
+/* Responsivo */
+@media(max-width:992px){
+  .sidebar{ width:70px; }
+  .sidebar-header h3,.sidebar-title,.sidebar-link span{ display:none; }
+  .sidebar-link{ justify-content:center; }
+  .dashboard-content{ margin-left:70px; }
+}
+@media(max-width:768px){ .sidebar{ display:none; } .dashboard-content{ margin-left:0; } }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

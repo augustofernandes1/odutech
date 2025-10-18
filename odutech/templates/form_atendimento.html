@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="dashboard-content">
+        <div class="header-minimalista text-center mb-4">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="logo-pequeno me-2" style="height: 35px;">
+            <span class="text-white fw-bold fs-5">ODÚ TECH</span>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-calendar-check"></i> {{ title }}</h2>
+                    <a href="{{ url_for('atendimentos_lista') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar para Atendimentos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12 col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="bi bi-calendar-check"></i> {{ title }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {{ form.hidden_tag() }}
+
+                            <!-- Informações -->
+                            <div class="form-section mb-4">
+                                <h5 class="form-section-title mb-3">
+                                    <i class="bi bi-info-circle"></i> Informações do Atendimento
+                                </h5>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label fw-bold">{{ form.data_atendimento.label }}</label>
+                                            {{ form.data_atendimento(class="form-control", required=True) }}
+                                            {% for e in form.data_atendimento.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label fw-bold">{{ form.executor.label }}</label>
+                                            {{ form.executor(class="form-control", placeholder="Nome do executor", required=True) }}
+                                            {% for e in form.executor.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Cliente -->
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label fw-bold">{{ form.id_cliente.label }}</label>
+                                            {{ form.id_cliente(class="form-select", required=True) }}
+                                            {% for e in form.id_cliente.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Produto -->
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label fw-bold">{{ form.id_produto.label }}</label>
+                                            {{ form.id_produto(class="form-select", required=True) }}
+                                            {% for e in form.id_produto.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Tipo -->
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label fw-bold">{{ form.tipo_atendimento.label }}</label>
+                                            {{ form.tipo_atendimento(class="form-select", required=True) }}
+                                            {% for e in form.tipo_atendimento.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Forma de pagamento -->
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label fw-bold">{{ form.forma_pagamento.label }}</label>
+                                            {{ form.forma_pagamento(class="form-select", required=True) }}
+                                            {% for e in form.forma_pagamento.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Procedimentos -->
+                            <div class="form-section mb-4">
+                                <h5 class="form-section-title mb-3">
+                                    <i class="bi bi-clipboard-check"></i> Detalhes do Procedimento
+                                </h5>
+
+                                <div class="form-group mb-3">
+                                    <label class="form-label fw-bold">{{ form.procedimentos.label }}</label>
+                                    {{ form.procedimentos(class="form-control", rows="3", placeholder="Descrição dos procedimentos realizados", required=True) }}
+                                    {% for e in form.procedimentos.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label fw-bold">{{ form.valor_total.label }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">R$</span>
+                                                {{ form.valor_total(class="form-control", placeholder="0,00", required=True) }}
+                                            </div>
+                                            {% for e in form.valor_total.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detalhes adicionais -->
+                            <div class="form-section mb-4">
+                                <h5 class="form-section-title mb-3">
+                                    <i class="bi bi-plus-circle"></i> Informações Adicionais
+                                </h5>
+                                <div class="form-group mb-3">
+                                    <label class="form-label fw-bold">{{ form.detalhes.label }}</label>
+                                    <span class="optional-badge">opcional</span>
+                                    {{ form.detalhes(class="form-control", rows="3", placeholder="Detalhes adicionais do atendimento") }}
+                                </div>
+                            </div>
+
+                            <!-- Botões -->
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    {{ form.botao_confirmacao(class="btn btn-primary btn-lg w-100") }}
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('atendimentos_lista') }}" class="btn btn-outline-secondary btn-lg w-100">
+                                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-minimalista text-center mt-4">
+            <p class="text-muted small mb-0">Copyright © ODÚ TECH - {{ now.year }}</p>
+        </div>
+    </div>
+</div>
+ <style>
+/* =======================================================
+   NOVO ATENDIMENTO — VISUAL MODERNO (AZUL + BRANCO + CINZA)
+   ======================================================= */
+
+:root{
+  --light-bg:#ffffff;
+  --surface:#f3f4f6;
+  --border:#e5e7eb;
+  --text:#111827;
+  --text-muted:#6b7280;
+
+  --primary:#2563eb;
+  --primary-2:#3b82f6;
+  --primary-deep:#1e3a8a;
+  --accent:#0ea5e9;
+}
+
+/* ===== BASE ===== */
+body{
+  background:linear-gradient(135deg,#ffffff 0%,#f3f4f6 100%);
+  color:var(--text);
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin:0;
+  min-height:100vh;
+}
+.dashboard-content{padding:32px;}
+
+/* ===== CABEÇALHO PRINCIPAL ===== */
+.header-minimalista{
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  border-radius:12px;
+  padding:14px 20px;
+  margin-bottom:25px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  box-shadow:0 8px 24px rgba(17,24,39,.08);
+  position:relative;
+}
+
+/* Logotipo e nome centralizados */
+.header-minimalista img.logo-pequeno{
+  height:50px;
+  width:auto;
+  border-radius:10px;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));
+}
+
+/* Nome da empresa ao lado do logo */
+.header-minimalista .titulo-empresa{
+  color:#111827; /* preto suave */
+  font-weight:800;
+  font-size:1.5rem;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  text-align:center;
+}
+
+/* ===== BOTÃO VOLTAR ===== */
+.btn-voltar{
+  position:absolute;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+  background:#4b5563;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:10px 18px;
+  font-weight:600;
+  transition:all .3s ease;
+}
+.btn-voltar:hover{
+  background:#374151;
+  transform:translateY(-50%) scale(1.05);
+}
+
+/* ===== CARD PRINCIPAL ===== */
+.card{
+  background:var(--light-bg);
+  border:1px solid var(--border);
+  border-radius:15px;
+  box-shadow:0 8px 24px rgba(17,24,39,.06);
+}
+.card-header{
+  background:linear-gradient(135deg,var(--primary),var(--primary-2)) !important;
+  color:#fff;
+  border:none;
+  border-radius:15px 15px 0 0 !important;
+  padding:20px;
+  font-weight:700;
+  font-size:1.1rem;
+}
+.card-body{padding:26px;}
+
+/* ===== SEÇÕES DO FORM ===== */
+.form-section{
+  background:#fafbff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.form-section-title{
+  color:var(--primary-deep);
+  font-weight:700;
+  font-size:1.05rem;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.form-section-title i{color:var(--primary);}
+
+/* ===== CAMPOS ===== */
+.form-label{
+  color:var(--text-muted);
+  font-weight:600;
+  margin-bottom:8px;
+  font-size:.95rem;
+}
+.form-control,
+.form-select{
+  background:#fff;
+  color:var(--text) !important;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 14px;
+  font-size:1rem;
+  transition:border-color .2s, box-shadow .2s;
+}
+.form-control::placeholder{color:#9ca3af !important;}
+.form-control:focus,
+.form-select:focus{
+  border-color:#dbeafe;
+  box-shadow:0 0 0 .25rem rgba(37,99,235,.15);
+}
+
+/* ===== SELECT ===== */
+.form-select{
+  background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='%23111827' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  background-size:16px 12px;
+}
+
+/* ===== BOTÕES ===== */
+.btn{
+  border-radius:10px;
+  font-weight:700;
+  padding:12px 20px;
+  font-size:1rem;
+  transition:all .25s ease;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  border:none;
+  color:#fff;
+  box-shadow:0 8px 18px rgba(37,99,235,.25);
+}
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 26px rgba(37,99,235,.35);
+}
+.btn-outline-secondary{
+  border:1px solid var(--border);
+  color:var(--text);
+  background:#fff;
+}
+.btn-outline-secondary:hover{
+  background:#f3f4f6;
+  border-color:#cbd5e1;
+}
+
+/* ===== MENSAGENS ===== */
+.text-danger{
+  color:#b91c1c !important;
+  font-size:.85rem;
+  margin-top:5px;
+}
+
+/* ===== RODAPÉ ===== */
+.footer-minimalista{
+  margin-top:auto;
+  padding:15px;
+  color:var(--text-muted);
+  text-align:center;
+  font-size:.9rem;
+  border-top:1px solid var(--border);
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media(max-width:768px){
+  .dashboard-content{padding:20px;}
+  .card-body{padding:18px;}
+  .header-minimalista .titulo-empresa{font-size:1.2rem;}
+}
+
+</style>
+{% endblock %}

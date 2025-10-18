@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+{% block title %}Atendimentos - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="sidebar-logo">
+            <h3>ODÚ TECH</h3>
+        </div>
+
+        <div class="sidebar-menu">
+            <h6 class="sidebar-title">Cadastros</h6>
+            <a href="{{ url_for('novo_cliente') }}" class="sidebar-link">
+                <i class="bi bi-person-plus"></i>
+                <span>Cadastrar Clientes</span>
+            </a>
+            <a href="{{ url_for('novo_produto') }}" class="sidebar-link">
+                <i class="bi bi-box-seam"></i>
+                <span>Registrar Produtos</span>
+            </a>
+            <a href="{{ url_for('novo_atendimento') }}" class="sidebar-link">
+                <i class="bi bi-calendar-check"></i>
+                <span>Registrar Atendimento</span>
+            </a>
+
+            <h6 class="sidebar-title">Visualizações</h6>
+            <a href="{{ url_for('atendimentos_lista') }}" class="sidebar-link active">
+                <i class="bi bi-cash-coin"></i>
+                <span>Ver Todas as Vendas</span>
+            </a>
+            <a href="{{ url_for('produtos') }}" class="sidebar-link">
+                <i class="bi bi-boxes"></i>
+                <span>Ver Todos os Produtos</span>
+            </a>
+            <a href="{{ url_for('clientes') }}" class="sidebar-link">
+                <i class="bi bi-people"></i>
+                <span>Ver Todos os Clientes</span>
+            </a>
+            <a href="{{ url_for('perfil', id_usuario=current_user.id) }}" class="sidebar-link">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('sair') }}" class="sidebar-link">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="dashboard-content">
+        <!-- Cabeçalho -->
+        <div class="dashboard-header">
+            <div class="d-flex align-items-center justify-content-center">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="me-3" style="height: 50px;">
+                <h1>Atendimentos</h1>
+            </div>
+            <p class="welcome-text">Gerencie seus atendimentos e vendas</p>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="row g-2 w-100" style="max-width: 720px;">
+                <div class="col-12 col-md">
+                    <form method="GET" class="d-flex gap-2">
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Buscar por cliente ou produto..."
+                               value="{{ search or '' }}"
+                               style="background: rgba(15,23,42,.5); color:#f8f9fa; border:1px solid rgba(255,255,255,.1);">
+                        <select name="mes" class="form-select"
+                                style="background: rgba(15,23,42,.5); color:#f8f9fa; border:1px solid rgba(255,255,255,.1); max-width: 200px;">
+                            <option value="">Todos os meses</option>
+                            {% for m in range(1,13) %}
+                                <option value="{{ m }}" {% if mes|int == m %}selected{% endif %}>{{ "%02d"|format(m) }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-primary"><i class="bi bi-funnel"></i> Filtrar</button>
+                    </form>
+                </div>
+            </div>
+
+            <a href="{{ url_for('novo_atendimento') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Atendimento
+            </a>
+        </div>
+
+        <!-- Cards de KPIs -->
+        <div class="row metrics-row mb-4">
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-icon" style="background: rgba(37, 99, 235, 0.2);">
+                        <i class="bi bi-list-check" style="color:#2563eb;"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>{{ total_atendimentos }}</h3>
+                        <p>Total de Atendimentos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-icon" style="background: rgba(16, 185, 129, 0.2);">
+                        <i class="bi bi-currency-dollar" style="color:#10b981;"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>
+                            R$
+                            {{ "{:,.2f}".format(total_vendas or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                        </h3>
+                        <p>Valor Total</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-icon" style="background: rgba(124,58,237,0.2);">
+                        <i class="bi bi-graph-up" style="color:#7c3aed;"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>
+                            R$
+                            {{ "{:,.2f}".format(ticket_medio or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                        </h3>
+                        <p>Ticket Médio</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Cliente</th>
+                                <th>Executor</th>
+                                <th>Produto</th>
+                                <th>Tipo</th>
+                                <th>Pagamento</th>
+                                <th>Valor</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in atendimentos.items %}
+                            <tr>
+                                <td>{{ a.data_atendimento.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ a.cliente.nome if a.cliente else '-' }}</td>
+                                <td>{{ a.executor }}</td>
+                                <td>
+                                    {% if a.produto %}
+                                        <span class="badge rounded-pill bg-primary" style="font-weight:600;">
+                                            {{ a.produto.nome }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">{{ a.procedimentos or '-' }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-info">{{ a.tipo_atendimento|title }}</span></td>
+                                <td>
+                                    {% set p = (a.forma_pagamento or '').lower() %}
+                                    <span class="badge
+                                        {% if 'pix' in p %} bg-success
+                                        {% elif 'crédit' in p or 'credit' in p %} bg-primary
+                                        {% elif 'débit' in p or 'debit' in p %} bg-primary
+                                        {% elif 'dinheiro' in p %} bg-secondary
+                                        {% else %} bg-dark {% endif %}">
+                                        {{ a.forma_pagamento or '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    R$
+                                    {{ "{:,.2f}".format(a.valor_total or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('detalhes_atendimento', id=a.id) }}"
+                                           class="btn btn-sm btn-outline-primary" title="Detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('editar_atendimento', id=a.id) }}"
+                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal" data-bs-target="#del{{ a.id }}" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Modal Excluir (com CSRF) -->
+                            <div class="modal fade" id="del{{ a.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content" style="background:#1a1a2e; color:#f8f9fa;">
+                                        <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,.1);">
+                                            <h5 class="modal-title">Confirmar Exclusão</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Tem certeza que deseja excluir este atendimento de
+                                            <strong>{{ a.cliente.nome if a.cliente else 'cliente' }}</strong>?
+                                        </div>
+                                        <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,.1);">
+                                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form action="{{ url_for('excluir_atendimento', id=a.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button class="btn btn-danger">Excluir</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">Nenhum atendimento encontrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                {% if atendimentos.pages > 1 %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if atendimentos.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('atendimentos_lista', page=atendimentos.prev_num, search=search, mes=mes) }}"
+                               style="background: rgba(255,255,255,0.05); color:#f8f9fa; border:1px solid rgba(255,255,255,0.1);">Anterior</a>
+                        </li>
+                        {% endif %}
+
+                        {% for p in atendimentos.iter_pages() %}
+                        <li class="page-item {% if p == atendimentos.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('atendimentos_lista', page=p, search=search, mes=mes) }}"
+                               style="background: rgba(255,255,255,0.05); color:#f8f9fa; border:1px solid rgba(255,255,255,0.1);">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+
+                        {% if atendimentos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('atendimentos_lista', page=atendimentos.next_num, search=search, mes=mes) }}"
+                               style="background: rgba(255,255,255,0.05); color:#f8f9fa; border:1px solid rgba(255,255,255,0.1);">Próxima</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ===================================================
+   ATENDIMENTOS — MESMO ESTILO E PALETA DO DASHBOARD
+   (inclui BUSCA + SELECT de meses + botão FILTRAR)
+   =================================================== */
+:root{
+  --light-bg:#ffffff;
+  --surface:#f3f4f6;
+  --border:#e5e7eb;
+  --text:#111827;
+  --text-muted:#6b7280;
+
+  --primary-color:#2563eb;    /* azul principal */
+  --primary-2:#3b82f6;        /* azul gradiente */
+  --primary-deep:#1e3a8a;     /* azul profundo */
+  --shadow-rgb:17,24,39;
+  --sidebar-width:280px;
+}
+
+/* ===== BASE ===== */
+body{
+  background:linear-gradient(135deg,#ffffff 0%,#f3f4f6 100%);
+  color:var(--text);
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin:0; padding:0; min-height:100vh;
+}
+.dashboard-wrapper{ display:flex; min-height:100vh; }
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  width:var(--sidebar-width);
+  background:linear-gradient(180deg,var(--primary-deep),var(--primary-color));
+  color:#fff; border-right:1px solid rgba(0,0,0,.05);
+  padding:20px 0; display:flex; flex-direction:column;
+  position:fixed; height:100vh; overflow-y:auto; z-index:1000;
+  box-shadow:4px 0 24px rgba(37,99,235,.15);
+}
+.sidebar-header{ padding:0 20px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,.15); margin-bottom:20px; }
+.sidebar-logo{ max-width:80px; margin-bottom:10px; border-radius:10px; }
+.sidebar-header h3{ color:#fff; font-size:1.2rem; font-weight:700; margin:0; }
+.sidebar-menu{ flex:1; padding:0 15px; }
+.sidebar-title{ color:rgba(255,255,255,.75); font-size:.8rem; text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px; padding-left:10px; }
+.sidebar-link{
+  display:flex; align-items:center; padding:12px 15px; color:#f8fafc; text-decoration:none;
+  border-radius:8px; margin-bottom:6px; transition:.25s ease;
+}
+.sidebar-link:hover,.sidebar-link.active{ background:rgba(255,255,255,.18); color:#fff; }
+.sidebar-link i{ margin-right:12px; font-size:1.1rem; width:20px; text-align:center; }
+.sidebar-footer{ padding:15px; border-top:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.8); text-align:center; }
+
+/* ===== CONTEÚDO ===== */
+.dashboard-content{ flex:1; margin-left:var(--sidebar-width); padding:20px; background:var(--surface); }
+.dashboard-header{
+  text-align:center; margin-bottom:30px; padding:25px; background:var(--light-bg);
+  border-radius:15px; border:1px solid var(--border); box-shadow:0 8px 24px rgba(17,24,39,.06);
+}
+.dashboard-header h1{ font-size:2.4rem; font-weight:800; margin:0; color:var(--primary-deep); }
+.welcome-text{ font-size:1.05rem; margin-top:8px; color:var(--text-muted); }
+
+/* ===== BARRA DE FERRAMENTAS (BUSCA + MESES + FILTRAR) ===== */
+/* Container (se existir) */
+.toolbar, .filters-row, .actions-row{ display:flex; gap:12px; align-items:center; }
+
+/* Campo de BUSCA — aplica ao input da frase “Buscar por cliente ou produto…” */
+input[type="search"],
+input[placeholder*="cliente"],
+input[placeholder*="Cliente"],
+input[placeholder*="produto"],
+input[placeholder*="Produtos"],
+/* fallback quando o campo vem como .form-control */
+.filters-row .form-control:first-child,
+.toolbar .form-control:first-child {
+  background:#fff !important;
+  color:var(--text) !important;
+  border:1px solid var(--border) !important;
+  border-radius:12px !important;
+  padding:12px 14px !important;
+  height:48px; box-shadow:0 4px 12px rgba(var(--shadow-rgb),.06) !important;
+}
+input[type="search"]::placeholder,
+input[placeholder*="cliente"]::placeholder,
+input[placeholder*="Cliente"]::placeholder,
+input[placeholder*="produto"]::placeholder,
+input[placeholder*="Produtos"]::placeholder { color:#9ca3af !important; }
+input[type="search"]:focus,
+input[placeholder*="cliente"]:focus,
+input[placeholder*="Cliente"]:focus,
+input[placeholder*="produto"]:focus,
+input[placeholder*="Produtos"]:focus,
+.filters-row .form-control:first-child:focus,
+.toolbar .form-control:first-child:focus{
+  border-color:#93c5fd !important;
+  box-shadow:0 0 0 .25rem rgba(37,99,235,.20) !important;
+  outline:0 !important;
+}
+
+/* Select de meses (ou qualquer .form-select nessa linha) */
+.filters-row .form-select,
+.toolbar .form-select,
+select.form-select{
+  background:#fff !important; color:var(--text) !important;
+  border:1px solid var(--border) !important; border-radius:12px !important;
+  padding:12px 40px 12px 12px !important; height:48px;
+  background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='%23111827' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+  background-repeat:no-repeat !important; background-position:right 14px center !important; background-size:16px 12px !important;
+  box-shadow:0 4px 12px rgba(var(--shadow-rgb),.06) !important;
+}
+.filters-row .form-select:focus,
+.toolbar .form-select:focus,
+select.form-select:focus{
+  border-color:#93c5fd !important;
+  box-shadow:0 0 0 .25rem rgba(37,99,235,.20) !important;
+}
+
+/* Botão FILTRAR (qualquer .btn com ícone de funil nessa área) */
+.filters-row .btn, .toolbar .btn, .btn-filtrar{
+  height:48px; border-radius:12px; padding:0 18px; font-weight:700;
+}
+.filters-row .btn-primary, .toolbar .btn-primary, .btn-filtrar{
+  background:linear-gradient(135deg,var(--primary-color),var(--primary-2)) !important;
+  color:#fff !important; border:none !important;
+  box-shadow:0 8px 18px rgba(37,99,235,.25);
+}
+.filters-row .btn-primary:hover, .toolbar .btn-primary:hover, .btn-filtrar:hover{
+  transform:translateY(-2px); box-shadow:0 12px 26px rgba(37,99,235,.35);
+}
+
+/* ===== MÉTRICAS ===== */
+.metric-card{
+  background:var(--light-bg); border:1px solid var(--border); border-radius:15px;
+  display:flex; align-items:center; gap:14px; padding:20px;
+  transition:.3s; box-shadow:0 6px 18px rgba(17,24,39,.06);
+}
+.metric-card:hover{ transform:translateY(-4px); box-shadow:0 10px 26px rgba(17,24,39,.1); }
+.metric-icon{
+  width:58px; height:58px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem; background:linear-gradient(135deg,var(--primary-deep),var(--primary-color)); color:#fff;
+}
+.metric-info h3{ margin:0; font-weight:700; color:var(--text); }
+.metric-info p{ margin:0; color:var(--text-muted); font-weight:600; font-size:.9rem; }
+
+/* ===== RECEITA ===== */
+.revenue-card{
+  background:linear-gradient(135deg,var(--primary-deep),var(--primary-color)); color:#fff;
+  padding:30px; border-radius:16px; display:flex; justify-content:space-between; align-items:center;
+  box-shadow:0 18px 44px rgba(37,99,235,.35); border:1px solid rgba(255,255,255,.12);
+}
+.revenue-info h3{ margin:0; font-size:1.1rem; opacity:.95; }
+.revenue-info h2{ margin:6px 0 0; font-size:2.5rem; font-weight:800; }
+.revenue-icon{ font-size:3rem; opacity:.95; text-shadow:0 2px 8px rgba(0,0,0,.25); }
+
+/* ===== TABELA ===== */
+.table{ color:var(--text); background:transparent; border-collapse:separate; border-spacing:0 6px; }
+.table thead th{
+  background:#eff6ff; color:var(--text); font-weight:700; text-align:center; padding:14px; border:none; border-radius:6px 6px 0 0;
+}
+.table tbody tr{ background:#ffffff; transition:all .2s ease; }
+.table tbody tr:hover{ background:#f1f5f9; }
+.table td{ padding:12px; text-align:center; font-size:.95rem; color:var(--text); border-top:1px solid var(--border); }
+
+/* ===== BADGES ===== */
+.badge{ font-weight:600; padding:6px 10px; font-size:.8rem; border-radius:8px; text-transform:capitalize; }
+.badge.bg-info{ background:#0ea5e9 !important; color:#fff; }
+.badge.bg-primary{ background:#2563eb !important; color:#fff; }
+.badge.bg-success{ background:#16a34a !important; color:#fff; }
+.badge.bg-secondary{ background:#6b7280 !important; color:#fff; }
+.badge.bg-dark{ background:#1e293b !important; color:#fff; }
+
+/* ===== BOTÕES GERAIS ===== */
+.btn{ border-radius:8px; font-weight:600; transition:.3s; }
+.btn-outline-primary{ border:none; background:#e0e7ff; color:var(--primary-deep); }
+.btn-outline-primary:hover{ background:var(--primary-color); color:#fff; }
+.btn-outline-danger{ border:none; background:#fee2e2; color:#b91c1c; }
+.btn-outline-danger:hover{ background:#ef4444; color:#fff; }
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary-deep),var(--primary-color));
+  border:none; color:#fff;
+}
+
+/* ===== PAGINAÇÃO ===== */
+.pagination .page-link{ background:#ffffff; border:1px solid var(--border); color:var(--text); }
+.pagination .page-item.active .page-link{ background:var(--primary-color); border-color:var(--primary-color); color:#fff; }
+
+/* ===== RODAPÉ ===== */
+.dashboard-footer{
+  text-align:center; padding:20px 10px; margin-top:30px; border-top:1px solid var(--border);
+  color:var(--text-muted); font-weight:600; font-size:.9rem; letter-spacing:.3px;
+  background:var(--light-bg); border-radius:12px; box-shadow:0 -4px 18px rgba(17,24,39,.05);
+}
+.dashboard-footer p{ margin:0; color:var(--primary-deep); font-weight:700; opacity:.9; }
+
+/* ===== RESPONSIVIDADE ===== */
+@media(max-width:992px){
+  .sidebar{ width:70px; }
+  .sidebar-header h3,.sidebar-title,.sidebar-link span{ display:none; }
+  .sidebar-link{ justify-content:center; }
+  .dashboard-content{ margin-left:70px; }
+}
+@media(max-width:768px){
+  .sidebar{ display:none; }
+  .dashboard-content{ margin-left:0; }
+}
+
+.nowrap{ white-space:nowrap; }
+.metric-info h3{ white-space:nowrap; }
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

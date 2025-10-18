@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="sidebar-logo">
+      <h3>ODÚ TECH</h3>
+    </div>
+
+    <div class="sidebar-menu">
+      <h6 class="sidebar-title">Cadastros</h6>
+      <a href="{{ url_for('novo_cliente') }}" class="sidebar-link">
+        <i class="bi bi-person-plus"></i><span>Cadastrar Clientes</span>
+      </a>
+      <a href="{{ url_for('novo_produto') }}" class="sidebar-link">
+        <i class="bi bi-box-seam"></i><span>Registrar Produtos</span>
+      </a>
+      <a href="{{ url_for('novo_atendimento') }}" class="sidebar-link">
+        <i class="bi bi-calendar-check"></i><span>Registrar Atendimento</span>
+      </a>
+
+      <h6 class="sidebar-title">Visualizações</h6>
+      <a href="{{ url_for('atendimentos_lista') }}" class="sidebar-link">
+        <i class="bi bi-cash-coin"></i><span>Ver Todas as Vendas</span>
+      </a>
+      <a href="{{ url_for('produtos') }}" class="sidebar-link">
+        <i class="bi bi-boxes"></i><span>Ver Todos os Produtos</span>
+      </a>
+      <a href="{{ url_for('clientes') }}" class="sidebar-link">
+        <i class="bi bi-people"></i><span>Ver Todos os Clientes</span>
+      </a>
+      <a href="{{ url_for('perfil', id_usuario=current_user.id) }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('sair') }}" class="sidebar-link">
+        <i class="bi bi-box-arrow-right"></i><span>Sair</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="dashboard-content">
+    <div class="dashboard-header">
+      <div class="d-flex align-items-center justify-content-center">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="me-3" style="height:50px;">
+        <h1>{{ title }}</h1>
+      </div>
+      <p class="welcome-text">Preencha as informações do cliente.</p>
+    </div>
+
+    <div class="card" style="background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <!-- Coluna da Foto -->
+            <div class="col-lg-4">
+              <div class="info-card">
+                <div class="info-card-head">
+                  <i class="bi bi-camera"></i>
+                  <span>Foto do Cliente</span>
+                </div>
+
+                <div class="d-flex flex-column align-items-center">
+                  <!-- Preview circular -->
+                  <div id="fotoPreviewWrap" class="rounded-circle mb-3"
+                       style="width: 140px; height: 140px; overflow:hidden; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center;">
+                    {% set foto_src =
+                      cliente and cliente.foto_path
+                      and url_for('static', filename=cliente.foto_path)
+                      or url_for('static', filename='images/avatar-placeholder.png')
+                    %}
+                    <img id="fotoPreview" src="{{ foto_src }}" alt="Foto"
+                         style="width:100%; height:100%; object-fit:cover;">
+                  </div>
+
+                  {# Input de arquivo oculto e botão que dispara o seletor #}
+                  {{ form.foto(id="fotoInput", accept="image/*", class="d-none") }}
+
+                  <button type="button" id="btnEscolherFoto" class="btn btn-primary w-100">
+                    <i class="bi bi-upload"></i> Escolher foto (JPG/PNG)
+                  </button>
+
+                  <div id="fotoNome" class="text-muted small mt-2">
+                    Nenhum arquivo selecionado
+                    {% if cliente and cliente.foto_path %} (atual: {{ cliente.foto_path.split('/')[-1] }}){% endif %}
+                  </div>
+
+                  {% for e in form.foto.errors %}
+                    <div class="text-danger small mt-2">{{ e }}</div>
+                  {% endfor %}
+
+                  <div class="text-muted small mt-2 text-center">
+                    Tamanho recomendado: quadrada. A imagem será recortada no círculo de perfil.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coluna dos Dados -->
+            <div class="col-lg-8">
+              <div class="info-card">
+                <div class="info-card-head">
+                  <i class="bi bi-card-text"></i>
+                  <span>Dados do Cliente</span>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">Nome Completo</label>
+                    {{ form.nome(class="form-control form-control-lg", placeholder="Digite o nome completo do cliente") }}
+                    {% for e in form.nome.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Data de Nascimento</label>
+                    {{ form.data_nascimento(class="form-control", type="date", required=true) }}
+                    {% for e in form.data_nascimento.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Primeiro Nome da Mãe</label>
+                    {{ form.nome_mae(class="form-control", placeholder="Primeiro nome da mãe") }}
+                    {% for e in form.nome_mae.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Data de Iniciação (opcional)</label>
+                    {{ form.data_iniciacao(class="form-control", type="date") }}
+                    {% for e in form.data_iniciacao.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Telefone (opcional)</label>
+                    {{ form.telefone(class="form-control", placeholder="(00) 00000-0000") }}
+                    {% for e in form.telefone.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">E-mail (opcional)</label>
+                    {{ form.email(class="form-control", placeholder="cliente@email.com") }}
+                    {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Endereço (opcional)</label>
+                    {{ form.endereco(class="form-control", rows="2", placeholder="Endereço completo") }}
+                    {% for e in form.endereco.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">Observações (opcional)</label>
+                    {{ form.observacoes(class="form-control", rows="3", placeholder="Observações importantes") }}
+                    {% for e in form.observacoes.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <a href="{{ url_for('clientes') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+            {{ form.botao_confirmacao(class="btn btn-primary") }}
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+:root{
+  /* Paleta clara unificada */
+  --light-bg:#ffffff;
+  --surface:#f3f4f6;      /* cinza do fundo da página */
+  --border:#e5e7eb;
+  --text:#111827;
+  --text-muted:#6b7280;
+
+  --primary-color:#2563eb;   /* azul principal (para gradientes/botões) */
+  --secondary-color:#3b82f6; /* azul secundário do gradiente */
+  --primary-deep:#1e3a8a;    /* azul profundo (títulos/bordas de ênfase) */
+
+  --sidebar-width:280px;
+}
+
+/* ===== BASE (tema claro) ===== */
+body{
+  background: linear-gradient(135deg,#ffffff 0%,#f3f4f6 100%);
+  color: var(--text);
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin:0; padding:0; min-height:100vh;
+}
+.dashboard-wrapper{ display:flex; min-height:100vh; }
+
+/* ===== SIDEBAR (gradiente azul) ===== */
+.sidebar{
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, var(--primary-deep) 0%, var(--primary-color) 100%);
+  backdrop-filter: none;
+  border-right: none;
+  padding: 20px 0;
+  display:flex; flex-direction:column;
+  position: fixed; height:100vh; overflow-y:auto; z-index:1000;
+  box-shadow: 4px 0 24px rgba(37,99,235,.15);
+}
+.sidebar-header{
+  padding:0 20px 20px; text-align:center;
+  border-bottom: 1px solid rgba(255,255,255,.18);
+  margin-bottom:20px;
+}
+.sidebar-logo{ max-width:80px; margin-bottom:10px; border-radius:10px; }
+.sidebar-header h3{ color:#fff; font-size:1.2rem; font-weight:700; margin:0; }
+
+.sidebar-menu{ flex:1; padding:0 15px; }
+.sidebar-title{
+  color: rgba(255,255,255,.75);
+  font-size:.8rem; text-transform:uppercase; letter-spacing:1px;
+  margin:20px 0 10px; padding-left:10px;
+}
+.sidebar-link{
+  display:flex; align-items:center; padding:12px 15px;
+  color:#f8fafc; text-decoration:none; border-radius:8px;
+  margin-bottom:5px; transition:.25s ease;
+}
+.sidebar-link:hover, .sidebar-link.active{
+  background: rgba(255,255,255,.18);
+  color:#fff;
+  transform: translateX(0); /* mantém layout estável */
+}
+.sidebar-link i{ margin-right:12px; font-size:1.1rem; width:20px; text-align:center; }
+.sidebar-footer{ padding:15px; border-top:1px solid rgba(255,255,255,.18); color:rgba(255,255,255,.85); }
+
+/* ===== CONTEÚDO ===== */
+.dashboard-content{
+  flex:1; margin-left:var(--sidebar-width); padding:20px;
+  background: var(--surface);
+}
+.dashboard-header{
+  text-align:center; margin-bottom:30px; padding:25px;
+  background: var(--light-bg);
+  border-radius:15px;
+  border:1px solid var(--border);
+  box-shadow:0 8px 24px rgba(17,24,39,.06);
+}
+.dashboard-header h1{ font-size:2.2rem; font-weight:700; margin:0; color: var(--primary-deep); }
+.welcome-text{ font-size:1.05rem; margin-top:8px; opacity:.9; color: var(--text); }
+
+/* ===== CARDS (informações) ===== */
+.info-card{
+  background: var(--light-bg);
+  border: 1px solid var(--border);
+  border-radius:15px; padding:18px; height:100%;
+  box-shadow:0 6px 18px rgba(17,24,39,.06);
+}
+.info-card-head{ display:flex;align-items:center;gap:10px; font-weight:700;margin-bottom:12px; color: var(--text); }
+.info-card-head i{ font-size:1.2rem; color: var(--primary-color); }
+
+/* ===== INPUTS ===== */
+.form-control{
+  background: #ffffff;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.form-control:focus{
+  background: #ffffff;
+  color: var(--text);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 .25rem rgba(37,99,235,.20);
+}
+
+/* ===== BOTÕES ===== */
+.btn{ border-radius:10px; font-weight:600; }
+.btn-primary{
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border: none; color:#fff;
+}
+.btn-primary:hover{
+  filter: brightness(1.03);
+  box-shadow: 0 8px 18px rgba(37,99,235,.25);
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media(max-width:992px){
+  .sidebar{ width:70px; }
+  .sidebar-header h3, .sidebar-title, .sidebar-link span{ display:none; }
+  .sidebar-link{ justify-content:center; }
+  .dashboard-content{ margin-left:70px; }
+}
+@media(max-width:768px){
+  .sidebar{ display:none; }
+  .dashboard-content{ margin-left:0; }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Abre o seletor de arquivo ao clicar no botão e mostra preview
+  (function(){
+    const input = document.getElementById('fotoInput');
+    const botao = document.getElementById('btnEscolherFoto');
+    const img = document.getElementById('fotoPreview');
+    const nome = document.getElementById('fotoNome');
+
+    if (botao && input) {
+      botao.addEventListener('click', function(){
+        input.click();
+      });
+    }
+
+    if (input && img && nome) {
+      input.addEventListener('change', function(){
+        const f = this.files && this.files[0];
+        if (!f) { nome.textContent = 'Nenhum arquivo selecionado'; return; }
+        nome.textContent = f.name;
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; };
+        reader.readAsDataURL(f);
+      });
+    }
+  })();
+</script>
+{% endblock %}

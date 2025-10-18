@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Login - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+    <div class="login-container">
+        <!-- Seção da Logo -->
+        <div class="logo-section">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}"
+                     alt="ODÚ TECH Logo"
+                     class="logo-image"
+                     onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';">
+            </div>
+            <h1 class="site-name">ODÚ TECH</h1>
+            <p class="site-tagline"></p>
+        </div>
+
+        <!-- Formulário de Login -->
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control", placeholder="seu@email.com") }}
+            </div>
+
+            <div class="form-group">
+                {{ form.senha.label(class="form-label") }}
+                <div class="password-toggle">
+                    {{ form.senha(class="form-control", placeholder="Sua senha") }}
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">
+                {{ form.botao_confirmacao.label.text }}
+            </button>
+        </form>
+
+        <div class="create-account">
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 40px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo-section {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .logo-image {
+        max-width: 150px;
+        max-height: 150px;
+        height: auto;
+        border-radius: 15px;
+        object-fit: contain;
+    }
+
+    .site-name {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--text-light);
+        margin-bottom: 5px;
+        letter-spacing: 1px;
+    }
+
+    .site-tagline {
+        color: var(--accent-color);
+        font-size: 1.1rem;
+        font-weight: 400;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-light);
+        margin-bottom: 10px;
+        display: block;
+        font-size: 1rem;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-light);
+        border-radius: 12px;
+        padding: 16px 20px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary-color);
+        color: var(--text-light);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        outline: none;
+    }
+
+    .btn-login {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 16px;
+        border-radius: 12px;
+        width: 100%;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(37, 99, 235, 0.4);
+    }
+
+    .create-account {
+        text-align: center;
+        margin-top: 30px;
+        color: var(--text-muted);
+    }
+
+    .create-account a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .password-toggle {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        z-index: 2;
+    }
+</style>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.querySelector('input[name="senha"]');
+        const toggleButton = document.querySelector('.toggle-password i');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleButton.classList.remove('bi-eye');
+            toggleButton.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleButton.classList.remove('bi-eye-slash');
+            toggleButton.classList.add('bi-eye');
+        }
+    }
+</script>
+{% endblock %}

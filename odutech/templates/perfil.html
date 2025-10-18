@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ usuario.username }} - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="sidebar-logo">
+            <h3>ODÚ TECH</h3>
+        </div>
+
+        <div class="sidebar-menu">
+            <h6 class="sidebar-title">Cadastros</h6>
+            <a href="{{ url_for('novo_cliente') }}" class="sidebar-link">
+                <i class="bi bi-person-plus"></i>
+                <span>Cadastrar Clientes</span>
+            </a>
+            <a href="{{ url_for('novo_produto') }}" class="sidebar-link">
+                <i class="bi bi-box-seam"></i>
+                <span>Registrar Produtos</span>
+            </a>
+            <a href="{{ url_for('novo_atendimento') }}" class="sidebar-link">
+                <i class="bi bi-calendar-check"></i>
+                <span>Registrar Lançamentos</span>
+            </a>
+
+            <h6 class="sidebar-title">Visualizações</h6>
+            <a href="{{ url_for('atendimentos_lista') }}" class="sidebar-link">
+                <i class="bi bi-cash-coin"></i>
+                <span>Ver Todas as Vendas</span>
+            </a>
+            <a href="{{ url_for('produtos') }}" class="sidebar-link">
+                <i class="bi bi-boxes"></i>
+                <span>Ver Todos os Produtos</span>
+            </a>
+            <a href="{{ url_for('clientes') }}" class="sidebar-link">
+                <i class="bi bi-people"></i>
+                <span>Ver Todos os Clientes</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('sair') }}" class="sidebar-link">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="dashboard-content">
+        <div class="dashboard-container">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div class="d-flex align-items-center justify-content-center">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="me-3" style="height: 50px;">
+                    <h1>Dashboard</h1>
+                </div>
+                <p class="welcome-text">Bem-vindo, {{ usuario.username }}! Aqui está o resumo do seu mês.</p>
+            </div>
+
+            <!-- Métricas (Atendimentos removido + todos com ícone de búzios) -->
+            <div class="row metrics-row g-3">
+                <!-- Ebós (verde) -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: rgba(16, 185, 129, 0.2);">
+                            <span class="icon-shell" style="color:#10b981;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 2c-5.5 0-10 4.86-10 10.5S6.5 23 12 23s10-4.86 10-10.5S17.5 2 12 2zm0 2c4.42 0 8 3.81 8 8.5S16.42 21 12 21s-8-3.81-8-8.5S7.58 4 12 4zm0 2.2c-3.1 0-5.8 2.99-5.8 6.3h2c0-2.18 1.75-4.3 3.8-4.3s3.8 2.12 3.8 4.3h2c0-3.31-2.7-6.3-5.8-6.3z"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="metric-info">
+                            <h3>{{ ebos_mes }}</h3>
+                            <p>EBÓS</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gbory (laranja) -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: rgba(245, 158, 11, 0.2);">
+                            <span class="icon-shell" style="color:#f59e0b;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 2c-5.5 0-10 4.86-10 10.5S6.5 23 12 23s10-4.86 10-10.5S17.5 2 12 2zm0 2c4.42 0 8 3.81 8 8.5S16.42 21 12 21s-8-3.81-8-8.5S7.58 4 12 4zm0 2.2c-3.1 0-5.8 2.99-5.8 6.3h2c0-2.18 1.75-4.3 3.8-4.3s3.8 2.12 3.8 4.3h2c0-3.31-2.7-6.3-5.8-6.3z"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="metric-info">
+                            <h3>{{ gbory_mes }}</h3>
+                            <p>GBORY</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Obrigação (vermelho) -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: rgba(239, 68, 68, 0.2);">
+                            <span class="icon-shell" style="color:#ef4444;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 2c-5.5 0-10 4.86-10 10.5S6.5 23 12 23s10-4.86 10-10.5S17.5 2 12 2zm0 2c4.42 0 8 3.81 8 8.5S16.42 21 12 21s-8-3.81-8-8.5S7.58 4 12 4zm0 2.2c-3.1 0-5.8 2.99-5.8 6.3h2c0-2.18 1.75-4.3 3.8-4.3s3.8 2.12 3.8 4.3h2c0-3.31-2.7-6.3-5.8-6.3z"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="metric-info">
+                            <h3>{{ obrigacao_mes }}</h3>
+                            <p>OBRIGAÇÃO</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Búzios (roxo) -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: rgba(124, 58, 237, 0.2);">
+                            <span class="icon-shell" style="color:#7c3aed;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 2c-5.5 0-10 4.86-10 10.5S6.5 23 12 23s10-4.86 10-10.5S17.5 2 12 2zm0 2c4.42 0 8 3.81 8 8.5S16.42 21 12 21s-8-3.81-8-8.5S7.58 4 12 4zm0 2.2c-3.1 0-5.8 2.99-5.8 6.3h2c0-2.18 1.75-4.3 3.8-4.3s3.8 2.12 3.8 4.3h2c0-3.31-2.7-6.3-5.8-6.3z"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="metric-info">
+                            <h3>{{ buzios_mes or 0 }}</h3>
+                            <p>BÚZIOS</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receita -->
+            <div class="revenue-card">
+                <div class="revenue-info">
+                    <h3>Receita do Mês</h3>
+                    <h2>
+                        R$ {{ "{:,.2f}".format(valor_total_mes or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                    </h2>
+                </div>
+                <div class="revenue-icon">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+
+            <!-- Atendimentos -->
+            <div class="atendimentos-section">
+                <div class="section-header">
+                    <h3><i class="bi bi-list-check"></i> Atendimentos</h3>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Data do atendimento</th>
+                                <th>Nome do cliente</th>
+                                <th>Executor</th>
+                                <th>Produto</th>
+                                <th>Valor Total</th>
+                                <th>Forma de pagamento</th>
+                                <th>Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for atendimento in atendimentos %}
+                            <tr>
+                                <td>{{ atendimento.data_atendimento.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ atendimento.cliente.nome }}</td>
+                                <td>{{ atendimento.executor }}</td>
+                                <td>{{ atendimento.produto.nome if atendimento.produto else '-' }}</td>
+                                <td>
+                                    R$ {{ "{:,.2f}".format(atendimento.valor_total or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                                </td>
+                                <td>{{ atendimento.forma_pagamento or '-' }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#detalhesModal{{ atendimento.id }}">
+                                        Ver informações
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">Nenhum atendimento encontrado este mês.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modais -->
+            {% for atendimento in atendimentos %}
+            <div class="modal fade" id="detalhesModal{{ atendimento.id }}" tabindex="-1"
+                 aria-labelledby="detalhesModalLabel{{ atendimento.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detalhesModalLabel{{ atendimento.id }}">Detalhes do Atendimento</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Cliente:</strong> {{ atendimento.cliente.nome }}</p>
+                            <p><strong>Data:</strong> {{ atendimento.data_atendimento.strftime('%d/%m/%Y %H:%M') }}</p>
+                            <p><strong>Executor:</strong> {{ atendimento.executor }}</p>
+                            <p><strong>Produto:</strong> {{ atendimento.produto.nome if atendimento.produto else '-' }}</p>
+                            <p>
+                                <strong>Valor:</strong>
+                                R$ {{ "{:,.2f}".format(atendimento.valor_total or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                            </p>
+                            <p><strong>Forma de Pagamento:</strong> {{ atendimento.forma_pagamento or 'Não informado' }}</p>
+                            {% if atendimento.detalhes %}
+                            <p><strong>Detalhes:</strong> {{ atendimento.detalhes }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Usuário -->
+            <div class="profile-card mt-4">
+                <div class="profile-header">
+                    <h3><i class="bi bi-person-circle"></i> Informações do Usuário</h3>
+                </div>
+                <div class="profile-info">
+                    <div class="info-item"><strong>Username:</strong> {{ usuario.username }}</div>
+                    <div class="info-item"><strong>Email:</strong> {{ usuario.email }}</div>
+                    <div class="info-item"><strong>ID:</strong> {{ usuario.id }}</div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="profile-actions mt-4">
+                <a href="{{ url_for('sair') }}" class="btn btn-danger me-2">
+                    <i class="bi bi-box-arrow-right"></i> Sair
+                </a>
+            </div>
+
+            <!-- Rodapé -->
+            <div class="dashboard-footer">
+                <p>Copyright © ODÚ TECH</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root{
+  --light-bg:#ffffff;
+  --surface:#f3f4f6;             /* fundo geral mais escuro */
+  --border:#e5e7eb;
+  --text:#111827;
+  --text-muted:#6b7280;
+
+  --primary:#2563eb;
+  --primary-2:#3b82f6;
+  --primary-deep:#1e3a8a;
+  --accent:#0ea5e9;
+  --shadow-rgb:17,24,39;
+
+  --sidebar-width:280px;
+}
+
+/* BASE */
+body{
+  background:linear-gradient(135deg,#e5e7eb 0%,#f3f4f6 100%);
+  color:var(--text);
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin:0; min-height:100vh;
+}
+.dashboard-wrapper{display:flex;min-height:100vh;width:100%}
+
+/* ======== SIDEBAR AZUL ======== */
+.sidebar{
+  width:var(--sidebar-width);
+  background:linear-gradient(180deg, var(--primary), var(--primary-deep));
+  border-right:none;
+  color:#ffffff;
+  padding:20px 0;
+  display:flex; flex-direction:column;
+  position:fixed; height:100vh;
+  z-index:1000; overflow-y:auto;
+  box-shadow:4px 0 24px rgba(37,99,235,.15);
+}
+
+.sidebar-header{
+  padding:0 20px 20px;
+  text-align:center;
+  border-bottom:1px solid rgba(255,255,255,.15);
+  margin-bottom:20px;
+}
+.sidebar-logo{max-width:80px;margin-bottom:10px;border-radius:10px}
+.sidebar-header h3{color:#ffffff;font-size:1.3rem;font-weight:700;margin:0}
+
+.sidebar-menu{flex:1;padding:0 15px}
+.sidebar-title{
+  color:rgba(255,255,255,.75);
+  font-size:.8rem;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin:20px 0 10px;
+  padding-left:10px;
+}
+
+.sidebar-link{
+  display:flex; align-items:center;
+  padding:12px 15px;
+  color:#f8fafc;
+  text-decoration:none;
+  border-radius:10px;
+  margin-bottom:6px;
+  transition:.25s ease;
+  border:1px solid transparent;
+}
+.sidebar-link:hover{
+  background:rgba(255,255,255,.15);
+  color:#ffffff;
+  transform:none;
+  box-shadow:none;
+}
+.sidebar-link i{margin-right:12px;font-size:1.1rem;width:20px;text-align:center}
+.sidebar-link.active,
+.sidebar-link[aria-current="page"],
+.sidebar-link[data-active="true"]{
+  background:rgba(255,255,255,.25);
+  color:#ffffff;
+  border-color:transparent;
+}
+
+/* ======== FOOTER DA SIDEBAR ======== */
+.sidebar-footer{
+  border-top:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.8);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:20px 10px;
+  font-size:.8rem;
+  margin-top:auto;
+}
+
+.sidebar-footer .btn{
+  width:90%;
+  margin-bottom:12px;
+}
+
+.sidebar-footer p,
+.sidebar-footer span{
+  width:100%;
+  margin:0;
+  font-weight:600;
+  text-align:center;
+  color:rgba(255,255,255,.8);
+  line-height:1.5;
+}
+
+.sidebar-footer span{
+  display:block;
+  text-align:center;
+  font-size:0.75rem;
+  opacity:0.85;
+}
+
+/* ======== CONTEÚDO ======== */
+.dashboard-content{
+  flex:1; margin-left:var(--sidebar-width); padding:30px;
+  width:calc(100% - var(--sidebar-width)); display:flex; justify-content:center;
+  background:var(--surface);
+}
+.dashboard-container{width:100%;max-width:1400px}
+
+/* ======== HEADER ======== */
+.dashboard-header{
+  text-align:center; margin-bottom:30px; padding:30px;
+  background:var(--light-bg); border-radius:16px;
+  box-shadow:0 8px 24px rgba(var(--shadow-rgb),.06);
+  border:1px solid var(--border);
+}
+.dashboard-header h1{
+  font-size:2.6rem; font-weight:800; margin:0;
+  color:var(--primary-deep); letter-spacing:.2px;
+  text-shadow:0 1px 0 rgba(255,255,255,.6);
+}
+.welcome-text{font-size:1.05rem;margin-top:14px!important;color:var(--text)!important;opacity:.9}
+
+/* ======== MÉTRICAS ======== */
+.metric-card{
+  background:var(--light-bg); padding:24px; border-radius:16px;
+  border:1px solid var(--border); display:flex; align-items:center; gap:16px;
+  min-height:96px; height:100%; box-shadow:0 6px 18px rgba(var(--shadow-rgb),.06);
+  transition:.25s ease;
+}
+.metric-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 10px 24px rgba(17,24,39,.10);
+}
+
+.metric-icon{
+  width:56px;height:56px;border-radius:14px;display:inline-flex;
+  align-items:center;justify-content:center;font-weight:700;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;
+  box-shadow:0 2px 6px rgba(17,24,39,.06),
+             0 0 0 6px rgba(37,99,235,.08);
+}
+
+.metric-info .metric-value{
+  font-size:1.75rem;line-height:1.2;font-weight:800;color:var(--text)
+}
+.metric-info .metric-label{
+  margin-top:2px;font-size:.85rem;font-weight:600;color:var(--text-muted);
+  letter-spacing:.2px
+}
+
+/* ======== ESPAÇAMENTO ENTRE KPI E RECEITA ======== */
+.metrics-row,
+.cards-top,
+.kpis,
+.cards,
+.cards-row{margin-bottom:18px}
+.revenue-card{margin-top:20px;margin-bottom:30px}
+.revenue-card + .atendimentos-section{margin-top:16px}
+
+/* ======== RECEITA DO MÊS ======== */
+.revenue-card{
+  background:linear-gradient(135deg,var(--primary-deep),var(--primary));
+  color:#fff; padding:30px; border-radius:16px;
+  display:flex; justify-content:space-between; align-items:center;
+  box-shadow:0 18px 44px rgba(37,99,235,.35);
+  border:1px solid rgba(255,255,255,.12);
+}
+.revenue-info h3{margin:0;font-size:1.1rem;opacity:.95;letter-spacing:.3px}
+.revenue-info h2{margin:6px 0 0;font-size:2.5rem;font-weight:800}
+.revenue-icon{font-size:3rem;opacity:.95;text-shadow:0 2px 8px rgba(0,0,0,.25)}
+
+/* ======== SEÇÕES / TABELA ======== */
+.atendimentos-section{
+  background:var(--light-bg); padding:25px; border-radius:16px;
+  border:1px solid var(--border); margin-bottom:30px;
+  box-shadow:0 6px 18px rgba(var(--shadow-rgb),.06);
+}
+.section-header{margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.section-header h3{font-size:1.5rem;font-weight:700;color:var(--primary-deep)}
+
+.table{color:var(--text);background:transparent}
+.table th{
+  background:linear-gradient(0deg,rgba(37,99,235,.12),rgba(59,130,246,.12));
+  color:var(--text);border:none;font-weight:700;padding:15px;
+}
+.table td{padding:15px;border-color:var(--border);vertical-align:middle}
+.table-hover tbody tr:hover{background:rgba(37,99,235,.06)}
+
+/* ======== BOTÕES ======== */
+.btn{border-radius:10px;padding:10px 20px;font-weight:700;transition:.2s;border:none}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;box-shadow:0 8px 18px rgba(37,99,235,.25);
+}
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 26px rgba(37,99,235,.35);
+}
+.btn-danger{
+  background:linear-gradient(135deg,#ef4444,#dc2626);
+  color:#fff;box-shadow:0 8px 18px rgba(239,68,68,.25);
+}
+.btn-danger:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(239,68,68,.35)}
+.btn-info{
+  background:rgba(14,165,233,.14);color:var(--primary-deep);
+  border:1px solid rgba(14,165,233,.25);
+}
+.btn-info:hover{background:rgba(14,165,233,.22)}
+
+/* ======== PERFIL / MODAL ======== */
+.profile-card{
+  background:var(--light-bg);padding:25px;border-radius:16px;
+  border:1px solid var(--border);box-shadow:0 6px 18px rgba(var(--shadow-rgb),.06);
+}
+.modal-content{background:var(--light-bg);color:var(--text);border:1px solid var(--border);border-radius:16px;box-shadow:0 16px 48px rgba(var(--shadow-rgb),.14)}
+.modal-header{border-bottom:1px solid var(--border);padding:20px}
+.modal-body{padding:20px}
+.modal-title{color:var(--primary-deep);font-weight:700}
+.btn-close{filter:none}
+
+/* ======== ACESSIBILIDADE ======== */
+:where(a,button,.btn,.sidebar-link):focus-visible{
+  outline:3px solid var(--accent);
+  outline-offset:2px;
+  box-shadow:0 0 0 4px rgba(14,165,233,.15);
+}
+
+/* ======== RESPONSIVO ======== */
+@media (max-width:1200px){
+  .dashboard-container{max-width:95%}
+  .dashboard-header h1{font-size:2.4rem}
+}
+@media (max-width:992px){
+  .sidebar{width:70px;overflow:visible}
+  .sidebar-header h3,.sidebar-title,.sidebar-link span{display:none}
+  .sidebar-link{justify-content:center;padding:15px}
+  .sidebar-link i{margin-right:0;font-size:1.3rem}
+  .dashboard-content{margin-left:70px;width:calc(100% - 70px);padding:20px}
+}
+@media (max-width:768px){
+  .sidebar{display:none}
+  .dashboard-content{margin-left:0;width:100%;padding:15px}
+  .revenue-card{padding:22px;flex-direction:column;text-align:center;gap:12px}
+}
+/* ======== RODAPÉ (COPYRIGHT CENTRALIZADO) ======== */
+.dashboard-footer {
+  text-align: center;
+  padding: 20px 10px;
+  margin-top: 30px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+  background: var(--light-bg);
+  border-radius: 12px;
+  box-shadow: 0 -4px 18px rgba(var(--shadow-rgb), 0.05);
+}
+
+/* Centraliza e garante espaçamento proporcional */
+.dashboard-footer p {
+  margin: 0;
+  color: var(--primary-deep);
+  font-weight: 700;
+  text-align: center;
+  opacity: 0.9;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

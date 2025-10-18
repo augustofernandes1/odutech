@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Menu Lateral -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="sidebar-logo">
+            <h3>ODÚ TECH</h3>
+        </div>
+
+        <div class="sidebar-menu">
+            <h6 class="sidebar-title">Cadastros</h6>
+            <a href="{{ url_for('novo_cliente') }}" class="sidebar-link active">
+                <i class="bi bi-person-plus"></i>
+                <span>Cadastrar Clientes</span>
+            </a>
+            <a href="{{ url_for('novo_produto') }}" class="sidebar-link">
+                <i class="bi bi-box-seam"></i>
+                <span>Registrar Produtos</span>
+            </a>
+            <a href="{{ url_for('novo_atendimento') }}" class="sidebar-link">
+                <i class="bi bi-calendar-check"></i>
+                <span>Registrar Atendimento</span>
+            </a>
+
+            <h6 class="sidebar-title">Visualizações</h6>
+            <a href="{{ url_for('atendimentos_lista') }}" class="sidebar-link">
+                <i class="bi bi-cash-coin"></i>
+                <span>Ver Todas as Vendas</span>
+            </a>
+            <a href="{{ url_for('produtos') }}" class="sidebar-link">
+                <i class="bi bi-boxes"></i>
+                <span>Ver Todos os Produtos</span>
+            </a>
+            <a href="{{ url_for('clientes') }}" class="sidebar-link active">
+                <i class="bi bi-people"></i>
+                <span>Ver Todos os Clientes</span>
+            </a>
+            <a href="{{ url_for('perfil', id_usuario=current_user.id) }}" class="sidebar-link">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('sair') }}" class="sidebar-link">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="dashboard-content">
+        <!-- Cabeçalho com logo -->
+        <div class="dashboard-header">
+            <div class="d-flex align-items-center justify-content-center">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="me-3" style="height: 50px;">
+                <h1>Clientes</h1>
+            </div>
+            <p class="welcome-text">Gerencie todos os clientes cadastrados no sistema</p>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-people"></i> Lista de Clientes</h2>
+            <a href="{{ url_for('novo_cliente') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Cliente
+            </a>
+        </div>
+
+        <!-- Barra de Pesquisa (campo maior) -->
+        <div class="card mb-4" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-body">
+                <form method="GET" class="row g-3" role="search" aria-label="Buscar clientes">
+                    <div class="col-lg-9 col-md-8">
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control"
+                            placeholder="Buscar por nome, email ou telefone..."
+                            value="{{ search }}"
+                            autofocus
+                            style="background: rgba(15, 23, 42, 0.5); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="col-lg-3 col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabela de Clientes -->
+        <div class="card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nome Completo</th>
+                                <th scope="col">Data Nasc.</th>
+                                <th scope="col">Data Iniciação</th>
+                                <th scope="col">Tempo Iniciação</th>
+                                <th scope="col">Nome da Mãe</th>
+                                <th scope="col">Telefone</th>
+                                <th scope="col">Email</th>
+                                <th scope="col" class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes.items %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('cliente_detalhes', id=cliente.id) }}" class="text-decoration-none">
+                                        {{ cliente.nome }}
+                                    </a>
+                                </td>
+                                <td>{{ cliente.data_nascimento.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ cliente.data_iniciacao.strftime('%d/%m/%Y') if cliente.data_iniciacao else '-' }}</td>
+                                <td>
+                                    {% if cliente.data_iniciacao %}
+                                        <span class="badge bg-info">{{ cliente.tempo_iniciacao() }} anos</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ cliente.nome_mae }}</td>
+                                <td>{{ cliente.telefone or '-' }}</td>
+                                <td>{{ cliente.email or '-' }}</td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('editar_cliente', id=cliente.id) }}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ cliente.id }}" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Modal de Confirmação de Exclusão -->
+                            <div class="modal fade" id="deleteModal{{ cliente.id }}" tabindex="-1" aria-labelledby="deleteLabel{{ cliente.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content" style="background: #1a1a2e; color: #f8f9fa;">
+                                        <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                            <h5 class="modal-title" id="deleteLabel{{ cliente.id }}">Confirmar Exclusão</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);" aria-label="Fechar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Tem certeza que deseja excluir o cliente <strong>{{ cliente.nome }}</strong>?</p>
+                                            <p class="text-danger">Esta ação não pode ser desfeita.</p>
+                                        </div>
+                                        <div class="modal-footer" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <!-- Formulário POST com CSRF -->
+                                            <form action="{{ url_for('excluir_cliente', id=cliente.id) }}" method="POST" class="m-0">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-danger">Excluir</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">Nenhum cliente encontrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                {% if clientes.pages > 1 %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if clientes.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('clientes', page=clientes.prev_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">Anterior</a>
+                        </li>
+                        {% endif %}
+
+                        {% for page_num in clientes.iter_pages() %}
+                        <li class="page-item {% if page_num == clientes.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('clientes', page=page_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">{{ page_num }}</a>
+                        </li>
+                        {% endfor %}
+
+                        {% if clientes.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('clientes', page=clientes.next_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">Próxima</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+ /* =======================================================
+   CLIENTES — MESMA PALETA / ESTILO DO DASHBOARD (APENAS CORES)
+   Não altera estrutura, tamanhos ou layout.
+   ======================================================= */
+
+/* -------- Paleta clara azul -------- */
+:root{
+  --light-bg:#ffffff;
+  --surface:#f3f4f6;      /* fundo geral */
+  --border:#e5e7eb;       /* bordas sutis */
+  --text:#111827;         /* texto principal */
+  --text-muted:#6b7280;   /* texto secundário */
+
+  --primary:#2563eb;      /* azul principal */
+  --primary-2:#3b82f6;    /* azul gradiente */
+  --primary-deep:#1e3a8a; /* azul profundo */
+
+  --sidebar-width:280px;
+
+  --shadow-1: 0 6px 18px rgba(17,24,39,.06);
+  --shadow-2: 0 10px 26px rgba(17,24,39,.10);
+}
+
+/* -------- Base -------- */
+body{
+  background: linear-gradient(135deg,#ffffff 0%, var(--surface) 100%) !important;
+  color: var(--text) !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 0; min-height: 100vh;
+}
+.dashboard-wrapper{ display:flex; min-height:100vh; }
+
+/* -------- Sidebar (degradê azul) -------- */
+.sidebar{
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, var(--primary-deep) 0%, var(--primary) 100%) !important;
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(0,0,0,.06) !important;
+  padding: 20px 0; display:flex; flex-direction:column;
+  position: fixed; height: 100vh; z-index: 1000; overflow-y: auto;
+  color:#fff !important;
+  box-shadow: 4px 0 24px rgba(37,99,235,.15) !important;
+}
+.sidebar-header{ padding:0 20px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,.15) !important; margin-bottom:20px; }
+.sidebar-logo{ max-width:80px; margin-bottom:10px; border-radius:10px; }
+.sidebar-header h3{ color:#fff !important; font-size:1.2rem; font-weight:600; margin:0; }
+.sidebar-menu{ flex:1; padding:0 15px; }
+.sidebar-title{ color:rgba(255,255,255,.75) !important; font-size:.8rem; text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px; padding-left:10px; }
+.sidebar-link{
+  display:flex; align-items:center; padding:12px 15px;
+  color:#f8fafc !important; text-decoration:none; border-radius:8px;
+  margin-bottom:5px; transition:.25s ease; border:1px solid transparent;
+}
+.sidebar-link:hover, .sidebar-link.active{
+  background: rgba(255,255,255,.18) !important;
+  color:#fff !important; transform: translateX(5px);
+}
+.sidebar-link i{ margin-right:12px; font-size:1.1rem; width:20px; text-align:center; }
+.sidebar-footer{ padding:15px; border-top:1px solid rgba(255,255,255,.15) !important; }
+
+/* -------- Conteúdo -------- */
+.dashboard-content{
+  flex:1; margin-left: var(--sidebar-width); padding:20px;
+  width: calc(100% - var(--sidebar-width));
+  background: var(--surface) !important;
+}
+
+/* Header da página de Clientes */
+.dashboard-header{
+  text-align:center; margin-bottom:30px; padding:25px;
+  background: var(--light-bg) !important;
+  border-radius:15px; box-shadow: var(--shadow-1) !important;
+  border:1px solid var(--border) !important;
+}
+.dashboard-header h1{
+  font-size:2.8rem; font-weight:700; margin:0;
+  color: var(--primary-deep) !important; text-shadow:none !important;
+}
+.welcome-text{ font-size:1.2rem; margin-top:15px !important; color: var(--text-muted) !important; opacity:.95; }
+
+/* -------- Tabela de Clientes -------- */
+.table{
+  color: var(--text) !important;
+  background: transparent !important;
+  border-collapse: separate !important;
+  border-spacing: 0 6px !important; /* “respiro” entre linhas */
+}
+.table thead th{
+  background:#eff6ff !important;
+  color: var(--text) !important;
+  border:none !important; font-weight:700 !important;
+  padding:15px !important; text-align:center !important;
+  border-radius:6px 6px 0 0 !important;
+}
+.table tbody tr{
+  background:#ffffff !important;
+  border:1px solid var(--border) !important;
+  transition: background .2s ease-in-out;
+  box-shadow: var(--shadow-1) !important;
+}
+.table tbody tr:nth-child(even){ background:#ffffff !important; }
+.table tbody tr:hover{
+  background:#f8fbff !important;
+  border-color:#dbeafe !important;
+  box-shadow: var(--shadow-2) !important;
+}
+.table td{
+  padding:12px !important; text-align:center !important;
+  border-top:1px solid rgba(0,0,0,0) !important; /* remove linha dupla */
+  font-size:.95rem !important; color: var(--text) !important;
+}
+/* arredondamento “pílula” nas bordas da linha */
+.table tbody tr td:first-child{ border-radius:10px 0 0 10px !important; }
+.table tbody tr td:last-child { border-radius:0 10px 10px 0 !important; }
+
+/* -------- Badges (tags de status, etc.) -------- */
+.badge{
+  font-size:.75rem !important; font-weight:700 !important;
+  padding:6px 10px !important; border-radius:999px !important;
+  text-transform:capitalize;
+}
+.badge.bg-info    { background:#0ea5e9 !important; color:#fff !important; }
+.badge.bg-success { background:#16a34a !important; color:#fff !important; }
+.badge.bg-warning { background:#f59e0b !important; color:#fff !important; }
+.badge.bg-danger  { background:#ef4444 !important; color:#fff !important; }
+
+/* -------- Botões -------- */
+.btn{ border-radius:10px; font-weight:700; transition:.2s; }
+.btn-primary{
+  background: linear-gradient(135deg, var(--primary-deep), var(--primary)) !important;
+  border:none !important; color:#fff !important;
+  box-shadow: 0 8px 18px rgba(37,99,235,.20) !important;
+}
+.btn-primary:hover{ transform: translateY(-1px); box-shadow: 0 12px 26px rgba(37,99,235,.28) !important; }
+.btn-outline-primary{
+  border:none !important; background:#e0e7ff !important; color: var(--primary-deep) !important;
+}
+.btn-outline-primary:hover{ background: var(--primary) !important; color:#fff !important; }
+.btn-outline-danger{ border:none !important; background:#fee2e2 !important; color:#b91c1c !important; }
+.btn-outline-danger:hover{ background:#ef4444 !important; color:#fff !important; }
+.btn-danger{
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important; border:none !important; color:#fff !important;
+}
+
+/* -------- Formulários (busca/edição de clientes) -------- */
+.form-control{
+  background:#ffffff !important; color: var(--text) !important;
+  border:1px solid var(--border) !important; border-radius:12px !important;
+  height:44px; box-shadow:none !important;
+}
+.form-control::placeholder{ color: var(--text-muted) !important; }
+.form-control:focus{
+  border-color:#bfdbfe !important;
+  box-shadow: 0 0 0 0.25rem rgba(37,99,235,.15) !important;
+}
+
+/* -------- Paginação -------- */
+.pagination .page-link{
+  background:#ffffff !important; border:1px solid var(--border) !important;
+  color: var(--text) !important; border-radius:10px !important;
+}
+.pagination .page-item.active .page-link{
+  background: var(--primary) !important;
+  border-color: var(--primary) !important; color:#fff !important;
+}
+
+/* -------- Responsividade (somente estados, sem alterar layout) -------- */
+@media (max-width: 992px){
+  .sidebar{ width:70px; overflow:visible; }
+  .sidebar-header h3, .sidebar-title, .sidebar-link span{ display:none; }
+  .sidebar-link{ justify-content:center; padding:15px; }
+  .sidebar-link i{ margin-right:0; font-size:1.3rem; }
+  .dashboard-content{ margin-left:70px; width:calc(100% - 70px); }
+  .dashboard-header h1{ font-size:2.2rem; }
+  .welcome-text{ font-size:1rem; }
+}
+@media (max-width: 768px){
+  .sidebar{ display:none; }
+  .dashboard-content{ margin-left:0; width:100%; }
+}
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

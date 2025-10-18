@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Produtos - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Menu Lateral -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="sidebar-logo">
+            <h3>ODÚ TECH</h3>
+        </div>
+
+        <div class="sidebar-menu">
+            <h6 class="sidebar-title">Cadastros</h6>
+            <a href="{{ url_for('novo_cliente') }}" class="sidebar-link">
+                <i class="bi bi-person-plus"></i>
+                <span>Cadastrar Clientes</span>
+            </a>
+            <a href="{{ url_for('novo_produto') }}" class="sidebar-link active">
+                <i class="bi bi-box-seam"></i>
+                <span>Registrar Produtos</span>
+            </a>
+            <a href="{{ url_for('novo_atendimento') }}" class="sidebar-link">
+                <i class="bi bi-calendar-check"></i>
+                <span>Registrar Atendimento</span>
+            </a>
+
+            <h6 class="sidebar-title">Visualizações</h6>
+            <a href="{{ url_for('atendimentos_lista') }}" class="sidebar-link">
+                <i class="bi bi-cash-coin"></i>
+                <span>Ver Todas as Vendas</span>
+            </a>
+            <a href="{{ url_for('produtos') }}" class="sidebar-link active">
+                <i class="bi bi-boxes"></i>
+                <span>Ver Todos os Produtos</span>
+            </a>
+            <a href="{{ url_for('clientes') }}" class="sidebar-link">
+                <i class="bi bi-people"></i>
+                <span>Ver Todos os Clientes</span>
+            </a>
+            <a href="{{ url_for('perfil', id_usuario=current_user.id) }}" class="sidebar-link">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('sair') }}" class="sidebar-link">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="dashboard-content">
+        <!-- Cabeçalho com logo -->
+        <div class="dashboard-header">
+            <div class="d-flex align-items-center justify-content-center">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="me-3" style="height: 50px;">
+                <h1>Produtos</h1>
+            </div>
+            <p class="welcome-text">Gerencie seu inventário de produtos</p>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-boxes"></i> Lista de Produtos</h2>
+            <a href="{{ url_for('novo_produto') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Produto
+            </a>
+        </div>
+
+        <!-- Barra de Pesquisa -->
+        <div class="card mb-4" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" name="search" class="form-control" placeholder="Buscar por nome ou descrição..." value="{{ search }}" style="background: rgba(15, 23, 42, 0.5); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabela de Produtos -->
+        <div class="card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Descrição</th>
+                                <th>Preço</th>
+                                <th>Estoque</th>
+                                <th>Data Cadastro</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produto in produtos.items %}
+                            <tr>
+                                <td>{{ produto.nome }}</td>
+                                <td>{{ produto.descricao|truncate(50) if produto.descricao else '-' }}</td>
+                                <td>R$ {{ "%.2f"|format(produto.preco) }}</td>
+                                <td>
+                                    <span class="badge {% if produto.quantidade_estoque > 10 %}bg-success{% elif produto.quantidade_estoque > 0 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ produto.quantidade_estoque }}
+                                    </span>
+                                </td>
+                                <td>{{ produto.data_cadastro.strftime('%d/%m/%Y') }}</td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('editar_produto', id=produto.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ produto.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Modal de Confirmação de Exclusão -->
+                            <div class="modal fade" id="deleteModal{{ produto.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content" style="background: #1a1a2e; color: #f8f9fa;">
+                                        <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                            <h5 class="modal-title">Confirmar Exclusão</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Tem certeza que deseja excluir o produto <strong>{{ produto.nome }}</strong>?</p>
+                                            <p class="text-danger">Esta ação não pode ser desfeita.</p>
+                                        </div>
+                                        <div class="modal-footer" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form action="{{ url_for('excluir_produto', id=produto.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-danger">Excluir</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center">Nenhum produto encontrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                {% if produtos.pages > 1 %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if produtos.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('produtos', page=produtos.prev_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">Anterior</a>
+                        </li>
+                        {% endif %}
+
+                        {% for page_num in produtos.iter_pages() %}
+                        <li class="page-item {% if page_num == produtos.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('produtos', page=page_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">{{ page_num }}</a>
+                        </li>
+                        {% endfor %}
+
+                        {% if produtos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('produtos', page=produtos.next_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">Próxima</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>/* =======================================================
+   PRODUTOS — CSS COMPLETO (MESMA PALETA DO DASHBOARD)
+   Somente estilo/cores. Nenhuma mudança estrutural.
+   ======================================================= */
+
+/* ---------- Paleta unificada ---------- */
+:root{
+  --light-bg:#ffffff;
+  --surface:#f3f4f6;      /* fundo de página */
+  --border:#e5e7eb;       /* bordas sutis */
+  --text:#111827;         /* texto principal */
+  --text-muted:#6b7280;   /* texto secundário */
+
+  --primary:#2563eb;      /* azul principal */
+  --primary-2:#3b82f6;    /* azul gradiente */
+  --primary-deep:#1e3a8a; /* azul profundo */
+
+  --sidebar-width:280px;
+
+  --shadow-1: 0 6px 18px rgba(17,24,39,.06);
+  --shadow-2: 0 10px 26px rgba(17,24,39,.10);
+}
+
+/* ---------- Base ---------- */
+body{
+  background: linear-gradient(135deg,#ffffff 0%, var(--surface) 100%) !important;
+  color: var(--text) !important;
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 0; min-height: 100vh;
+}
+.dashboard-wrapper{ display:flex; min-height:100vh; }
+
+/* ---------- Sidebar (mesmo degradê azul) ---------- */
+.sidebar{
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, var(--primary-deep) 0%, var(--primary) 100%) !important;
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(0,0,0,.06) !important;
+  color: #ffffff !important;
+  padding: 20px 0; display:flex; flex-direction:column;
+  position: fixed; height: 100vh; z-index: 1000; overflow-y: auto;
+  box-shadow: 4px 0 24px rgba(37,99,235,.15) !important;
+}
+.sidebar-header{ padding:0 20px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,.15) !important; margin-bottom:20px; }
+.sidebar-logo{ max-width:80px; margin-bottom:10px; border-radius:10px; }
+.sidebar-header h3{ color:#ffffff !important; font-size:1.2rem; font-weight:600; margin:0; }
+.sidebar-menu{ flex:1; padding:0 15px; }
+.sidebar-title{ color:rgba(255,255,255,.75) !important; font-size:.8rem; text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px; padding-left:10px; }
+.sidebar-link{ display:flex; align-items:center; padding:12px 15px; color:#f8fafc !important; text-decoration:none; border-radius:8px; margin-bottom:5px; transition:.25s ease; border-color:transparent !important; }
+.sidebar-link:hover, .sidebar-link.active{ background:rgba(255,255,255,.18) !important; color:#ffffff !important; transform: translateX(5px); }
+.sidebar-link i{ margin-right:12px; font-size:1.1rem; width:20px; text-align:center; }
+.sidebar-footer{ padding:15px; border-top:1px solid rgba(255,255,255,.15) !important; color:rgba(255,255,255,.85) !important; }
+
+/* ---------- Conteúdo ---------- */
+.dashboard-content{
+  flex:1; margin-left: var(--sidebar-width); padding:20px;
+  width: calc(100% - var(--sidebar-width)); background: var(--surface) !important;
+}
+.dashboard-header{
+  text-align:center; margin-bottom:30px; padding:25px;
+  background: var(--light-bg) !important;
+  border-radius:16px; box-shadow: var(--shadow-1) !important;
+  border:1px solid var(--border) !important;
+}
+.dashboard-header h1{ font-size:2.6rem; font-weight:800; margin:0; color: var(--primary-deep) !important; text-shadow:none !important; }
+.welcome-text{ font-size:1.1rem; margin-top:10px !important; color: var(--text-muted) !important; }
+
+/* ---------- Barra de busca / filtros ---------- */
+.form-control{
+  background:#ffffff !important; color: var(--text) !important;
+  border:1px solid var(--border) !important; border-radius:12px !important;
+  height:44px; box-shadow:none !important;
+}
+.form-control::placeholder{ color: var(--text-muted) !important; }
+.form-control:focus{
+  border-color:#bfdbfe !important;
+  box-shadow: 0 0 0 0.25rem rgba(37,99,235,.15) !important;
+  background:#ffffff !important; color:var(--text) !important;
+}
+.input-group .btn, .btn-search{ height:44px; border-radius:12px !important; }
+
+/* ---------- Botões ---------- */
+.btn{ border-radius:10px; font-weight:700; transition:.2s; }
+.btn-primary{
+  background: linear-gradient(135deg, var(--primary-deep), var(--primary)) !important;
+  color:#fff !important; border:none !important;
+  box-shadow: 0 8px 18px rgba(37,99,235,.20) !important;
+}
+.btn-primary:hover{ box-shadow: 0 12px 26px rgba(37,99,235,.28) !important; transform: translateY(-1px); }
+.btn-outline-primary{
+  border:none !important; background:#e0e7ff !important; color: var(--primary-deep) !important;
+}
+.btn-outline-primary:hover{ background: var(--primary) !important; color:#fff !important; }
+.btn-outline-danger{ border:none !important; background:#fee2e2 !important; color:#b91c1c !important; }
+.btn-outline-danger:hover{ background:#ef4444 !important; color:#fff !important; }
+.btn-danger{ background: linear-gradient(135deg,#ef4444,#dc2626) !important; border:none !important; color:#fff !important; }
+
+/* ---------- Tabela ---------- */
+.table{
+  color: var(--text) !important;
+  background: transparent !important;
+  border-collapse: separate !important;
+  border-spacing: 0 6px !important;   /* respiro entre linhas */
+}
+.table thead th{
+  background:#eff6ff !important;
+  color: var(--text) !important;
+  border:none !important;
+  font-weight:700 !important;
+  text-align:center !important;
+  padding:14px !important;
+  border-radius:6px 6px 0 0 !important;
+}
+.table tbody tr{
+  background:#ffffff !important;
+  border:1px solid var(--border) !important;
+  box-shadow: var(--shadow-1) !important;
+}
+.table tbody tr:hover{
+  background:#f8fbff !important;
+  border-color:#dbeafe !important;
+  box-shadow: var(--shadow-2) !important;
+}
+.table td{
+  padding:14px 12px !important;
+  text-align:center !important;
+  font-size:.95rem !important;
+  color: var(--text) !important;
+  border-top:1px solid rgba(0,0,0,0) !important; /* remove linha dupla */
+}
+/* Arredonda a “pílula” da linha visualmente */
+.table tbody tr td:first-child{ border-radius:10px 0 0 10px !important; }
+.table tbody tr td:last-child { border-radius:0 10px 10px 0 !important; }
+
+/* ---------- Badges (ex.: estoque) ---------- */
+.badge{
+  font-weight:700 !important;
+  font-size:.75rem !important;
+  padding:6px 10px !important;
+  border-radius:999px !important;
+}
+.badge.bg-success{ background:#16a34a !important; color:#fff !important; }
+.badge.bg-warning{ background:#f59e0b !important; color:#fff !important; }
+.badge.bg-danger { background:#ef4444 !important; color:#fff !important; }
+.badge.bg-primary{ background:#2563eb !important; color:#fff !important; }
+.badge.bg-secondary{ background:#6b7280 !important; color:#fff !important; }
+
+/* ---------- Paginação ---------- */
+.pagination .page-link{
+  background:#ffffff !important;
+  border:1px solid var(--border) !important;
+  color: var(--text) !important;
+  border-radius:10px !important;
+}
+.pagination .page-item.active .page-link{
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color:#fff !important;
+}
+
+/* ---------- Cartões/seções genéricos na página ---------- */
+.card, .panel, .products-panel, .list-panel{
+  background: var(--light-bg) !important;
+  border:1px solid var(--border) !important;
+  box-shadow: var(--shadow-1) !important;
+  border-radius: 16px !important;
+}
+
+/* ---------- Títulos ---------- */
+h2, h3, .page-title{ color: var(--primary-deep) !important; }
+
+/* ---------- Responsivo (somente estados/cores) ---------- */
+@media (max-width: 992px){
+  .sidebar{ width:70px; overflow:visible; }
+  .sidebar-header h3, .sidebar-title, .sidebar-link span{ display:none; }
+  .sidebar-link{ justify-content:center; padding:15px; }
+  .sidebar-link i{ margin-right:0; font-size:1.3rem; }
+  .dashboard-content{ margin-left:70px; width:calc(100% - 70px); }
+  .dashboard-header h1{ font-size:2.2rem; }
+  .welcome-text{ font-size:1rem; }
+}
+@media (max-width: 768px){
+  .sidebar{ display:none; }
+  .dashboard-content{ margin-left:0; width:100%; }
+}
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

@@ -1,0 +1,1818 @@
+Index: main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/main.py b/main.py
+--- a/main.py
++++ b/main.py	(date 1757871165049)
+@@ -1,143 +1,16 @@
+ from odutech import app, database
+-from odutech.models import Usuario, Atendimento, Cliente, Produto
+-from datetime import datetime, timedelta
+-from flask_bcrypt import Bcrypt
+-
+-
+-def criar_dados_teste():
+-    with app.app_context():
+-        # Criar tabelas se não existirem
+-        database.create_all()
+-
+-        # Verificar se já existem dados
+-        if Usuario.query.count() > 0:
+-            print("⚠️  Já existem dados no banco. Pulando criação de dados de teste.")
+-            return
+-
+-        # Criar usuário de teste
+-        bcrypt = Bcrypt()
+-        senha_hash = bcrypt.generate_password_hash('senha123').decode('utf-8')
+-        usuario = Usuario(
+-            username='teste',
+-            email='teste@email.com',
+-            senha=senha_hash
+-        )
+-        database.session.add(usuario)
+-        database.session.commit()
+-        print("✅ Usuário teste criado: teste@email.com / senha123")
+-
+-        # Criar cliente de teste
+-        cliente = Cliente(
+-            nome_completo='Maria Silva Santos',
+-            data_nascimento=datetime(1985, 5, 15).date(),
+-            nome_mae='Ana',
+-            data_iniciacao=datetime(2015, 8, 20).date(),
+-            email='maria@email.com',
+-            telefone='(11) 99999-9999',
+-            endereco='Rua das Flores, 123 - São Paulo/SP',
+-            observacoes='Cliente preferencial',
+-            id_usuario=usuario.id
+-        )
+-        database.session.add(cliente)
+-        database.session.commit()
+-        print("✅ Cliente teste criado")
+-
+-        # Criar atendimentos de teste
+-        atendimentos = [
+-            {
+-                'data_atendimento': datetime.now() - timedelta(days=1),
+-                'executor': 'Pai João',
+-                'procedimentos': 'Ebó de Descarrego',
+-                'valor_total': 150.00,
+-                'forma_pagamento': 'dinheiro',
+-                'tipo_atendimento': 'ebó',
+-                'detalhes': 'Ebó completo com todos os elementos',
+-                'id_cliente': cliente.id
+-            },
+-            {
+-                'data_atendimento': datetime.now() - timedelta(days=2),
+-                'executor': 'Mãe Maria',
+-                'procedimentos': 'Gbory de Prosperidade',
+-                'valor_total': 200.00,
+-                'forma_pagamento': 'pix',
+-                'tipo_atendimento': 'gbory',
+-                'detalhes': 'Trabalho para abertura de caminhos',
+-                'id_cliente': cliente.id
+-            },
+-            {
+-                'data_atendimento': datetime.now() - timedelta(days=3),
+-                'executor': 'Pai Carlos',
+-                'procedimentos': 'Obrigação de 7 anos',
+-                'valor_total': 500.00,
+-                'forma_pagamento': 'cartao',
+-                'tipo_atendimento': 'obrigacao',
+-                'detalhes': 'Obrigação completa com todos os rituais',
+-                'id_cliente': cliente.id
+-            }
+-        ]
+-
+-        for i, atendimento_data in enumerate(atendimentos):
+-            atendimento = Atendimento(
+-                data_atendimento=atendimento_data['data_atendimento'],
+-                executor=atendimento_data['executor'],
+-                procedimentos=atendimento_data['procedimentos'],
+-                valor_total=atendimento_data['valor_total'],
+-                forma_pagamento=atendimento_data['forma_pagamento'],
+-                tipo_atendimento=atendimento_data['tipo_atendimento'],
+-                detalhes=atendimento_data['detalhes'],
+-                id_usuario=usuario.id,
+-                id_cliente=atendimento_data['id_cliente']
+-            )
+-            database.session.add(atendimento)
+-
+-        # Criar produtos de teste
+-        produtos = [
+-            {
+-                'nome': 'Vela Ritualística',
+-                'descricao': 'Vela especial para rituais',
+-                'preco': 15.00,
+-                'quantidade_estoque': 50
+-            },
+-            {
+-                'nome': 'Incenso Sagrado',
+-                'descricao': 'Incenso para purificação',
+-                'preco': 8.00,
+-                'quantidade_estoque': 100
+-            },
+-            {
+-                'nome': 'Ervas para Banho',
+-                'descricao': 'Kit de ervas para banho de descarrego',
+-                'preco': 25.00,
+-                'quantidade_estoque': 30
+-            }
+-        ]
+-
+-        for produto_data in produtos:
+-            produto = Produto(
+-                nome=produto_data['nome'],
+-                descricao=produto_data['descricao'],
+-                preco=produto_data['preco'],
+-                quantidade_estoque=produto_data['quantidade_estoque'],
+-                id_usuario=usuario.id
+-            )
+-            database.session.add(produto)
+-
+-        database.session.commit()
+-        print("✅ Dados de teste criados com sucesso!")
+-
+ 
+ if __name__ == '__main__':
+     # Executar migração primeiro (se necessário)
+     try:
+         from migrate import migrate_database
+-
+         migrate_database()
+     except ImportError:
+         print("⚠️  Script de migração não encontrado. Criando banco do zero...")
+ 
+-    # Criar dados de teste
++    # Apenas criar as tabelas
+     with app.app_context():
+         database.create_all()
+-        criar_dados_teste()
++        print("✅ Banco de dados criado com sucesso!")
+ 
+     app.run(debug=True)
+\ No newline at end of file
+Index: odutech/forms.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/odutech/forms.py b/odutech/forms.py
+--- a/odutech/forms.py
++++ b/odutech/forms.py	(date 1757873702260)
+@@ -1,10 +1,7 @@
+ from flask_wtf import FlaskForm
+-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, DecimalField, IntegerField, \
+-    DateField
+-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional, NumberRange
+-from odutech.models import Usuario, Cliente
+-from datetime import datetime, date
+-from wtforms.fields import DateField
++from wtforms import StringField, PasswordField, SubmitField
++from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
++from odutech.models import Usuario
+ 
+ 
+ class FormLogin(FlaskForm):
+@@ -28,63 +25,4 @@
+     def validate_username(self, username):
+         usuario = Usuario.query.filter_by(username=username.data).first()
+         if usuario:
+-            raise ValidationError('Nome de usuário já em uso. Escolha outro.')
+-
+-
+-class FormCliente(FlaskForm):
+-    nome_completo = StringField('Nome Completo', validators=[DataRequired(), Length(max=100)])
+-    data_nascimento = DateField('Data de Nascimento', validators=[DataRequired()], format='%Y-%m-%d')
+-    nome_mae = StringField('Primeiro Nome da Mãe', validators=[DataRequired(), Length(max=100)])
+-    data_iniciacao = DateField('Data de Iniciação (opcional)', validators=[Optional()], format='%Y-%m-%d')
+-    email = StringField('E-mail (opcional)', validators=[Optional(), Email(), Length(max=120)])
+-    telefone = StringField('Telefone (opcional)', validators=[Optional(), Length(max=20)])
+-    endereco = TextAreaField('Endereço (opcional)', validators=[Optional()])
+-    observacoes = TextAreaField('Observações (opcional)', validators=[Optional()])
+-    botao_confirmacao = SubmitField('Salvar Cliente')
+-
+-    def validate_data_nascimento(self, data_nascimento):
+-        if data_nascimento.data and data_nascimento.data > date.today():
+-            raise ValidationError('A data de nascimento não pode ser no futuro.')
+-
+-    def validate_data_iniciacao(self, data_iniciacao):
+-        if data_iniciacao.data and data_iniciacao.data > date.today():
+-            raise ValidationError('A data de iniciação não pode ser no futuro.')
+-        if (data_iniciacao.data and self.data_nascimento.data and
+-                data_iniciacao.data < self.data_nascimento.data):
+-            raise ValidationError('A data de iniciação não pode ser anterior à data de nascimento.')
+-
+-
+-class FormProduto(FlaskForm):
+-    nome = StringField('Nome do Produto', validators=[DataRequired(), Length(max=100)])
+-    descricao = TextAreaField('Descrição', validators=[Optional()])
+-    preco = DecimalField('Preço', validators=[DataRequired(), NumberRange(min=0)], places=2)
+-    quantidade_estoque = IntegerField('Quantidade em Estoque', validators=[DataRequired(), NumberRange(min=0)],
+-                                      default=0)
+-    botao_confirmacao = SubmitField('Salvar Produto')
+-
+-
+-class FormAtendimento(FlaskForm):
+-    data_atendimento = DateField('Data do Atendimento', validators=[DataRequired()], default=datetime.now,
+-                                 format='%Y-%m-%d')
+-    id_cliente = SelectField('Cliente', coerce=int, validators=[DataRequired()])
+-    executor = StringField('Executor', validators=[DataRequired(), Length(max=100)])
+-    procedimentos = StringField('Procedimentos', validators=[DataRequired(), Length(max=200)])
+-    valor_total = DecimalField('Valor Total', validators=[DataRequired(), NumberRange(min=0)], places=2)
+-    forma_pagamento = SelectField('Forma de Pagamento', choices=[
+-        ('', 'Selecione...'),
+-        ('dinheiro', 'Dinheiro'),
+-        ('pix', 'PIX'),
+-        ('cartao_credito', 'Cartão de Crédito'),
+-        ('cartao_debito', 'Cartão de Débito'),
+-        ('transferencia', 'Transferência Bancária')
+-    ], validators=[DataRequired()])
+-    tipo_atendimento = SelectField('Tipo de Atendimento', choices=[
+-        ('', 'Selecione...'),
+-        ('consulta', 'Consulta'),
+-        ('ebó', 'Ebó'),
+-        ('gbory', 'Gbory'),
+-        ('obrigacao', 'Obrigação'),
+-        ('outro', 'Outro')
+-    ], validators=[DataRequired()])
+-    detalhes = TextAreaField('Detalhes', validators=[Optional()])
+-    botao_confirmacao = SubmitField('Salvar Atendimento')
+\ No newline at end of file
++            raise ValidationError('Nome de usuário já em uso. Escolha outro.')
+\ No newline at end of file
+Index: odutech/criar_banco.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/odutech/criar_banco.py b/odutech/criar_banco.py
+new file mode 100644
+--- /dev/null	(date 1757871313104)
++++ b/odutech/criar_banco.py	(date 1757871313104)
+@@ -0,0 +1,26 @@
++# criar_banco.py
++from odutech import create_app, db
++from odutech.models import Usuario, Cliente, Produto, Atendimento
++from werkzeug.security import generate_password_hash
++
++app = create_app()
++
++with app.app_context():
++    # Criar todas as tabelas
++    db.create_all()
++    print("✅ Tabelas criadas com sucesso!")
++
++    # Criar usuário admin padrão se não existir
++    if not Usuario.query.first():
++        usuario_admin = Usuario(
++            username='admin',
++            email='admin@email.com',
++            senha=generate_password_hash('admin123')
++        )
++        db.session.add(usuario_admin)
++        db.session.commit()
++        print("✅ Usuário admin criado:")
++        print("   Email: admin@email.com")
++        print("   Senha: admin123")
++    else:
++        print("ℹ️  Usuário admin já existe")
+\ No newline at end of file
+Index: odutech/templates/homepage.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/odutech/templates/homepage.html b/odutech/templates/homepage.html
+--- a/odutech/templates/homepage.html
++++ b/odutech/templates/homepage.html	(date 1757873614194)
+@@ -8,13 +8,13 @@
+         <!-- Seção da Logo -->
+         <div class="logo-section">
+             <div class="logo-container">
+-                <img src="{{ url_for('static', filename='images/logo.png') }}" 
+-                     alt="ODÚ TECH Logo" 
++                <img src="{{ url_for('static', filename='images/logo.png') }}"
++                     alt="ODÚ TECH Logo"
+                      class="logo-image"
+                      onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';">
+             </div>
+             <h1 class="site-name">ODÚ TECH</h1>
+-            <p class="site-tagline">Soluções em Tecnologia</p>
++            <p class="site-tagline"></p>
+         </div>
+ 
+         <!-- Formulário de Login -->
+Index: odutech/templates/produtos.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/odutech/templates/produtos.html b/odutech/templates/produtos.html
+--- a/odutech/templates/produtos.html
++++ b/odutech/templates/produtos.html	(date 1757867731721)
+@@ -55,19 +55,28 @@
+ 
+     <!-- Conteúdo Principal -->
+     <div class="dashboard-content">
++        <!-- Cabeçalho com logo -->
++        <div class="dashboard-header">
++            <div class="d-flex align-items-center justify-content-center">
++                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="me-3" style="height: 50px;">
++                <h1>Produtos</h1>
++            </div>
++            <p class="welcome-text">Gerencie seu inventário de produtos</p>
++        </div>
++
+         <div class="d-flex justify-content-between align-items-center mb-4">
+-            <h2><i class="bi bi-boxes"></i> Produtos</h2>
++            <h2><i class="bi bi-boxes"></i> Lista de Produtos</h2>
+             <a href="{{ url_for('novo_produto') }}" class="btn btn-primary">
+                 <i class="bi bi-plus-circle"></i> Novo Produto
+             </a>
+         </div>
+ 
+         <!-- Barra de Pesquisa -->
+-        <div class="card mb-4">
++        <div class="card mb-4" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+             <div class="card-body">
+                 <form method="GET" class="row g-3">
+                     <div class="col-md-8">
+-                        <input type="text" name="search" class="form-control" placeholder="Buscar por nome ou descrição..." value="{{ search }}">
++                        <input type="text" name="search" class="form-control" placeholder="Buscar por nome ou descrição..." value="{{ search }}" style="background: rgba(15, 23, 42, 0.5); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">
+                     </div>
+                     <div class="col-md-4">
+                         <button type="submit" class="btn btn-primary w-100">
+@@ -79,10 +88,10 @@
+         </div>
+ 
+         <!-- Tabela de Produtos -->
+-        <div class="card">
++        <div class="card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+             <div class="card-body">
+                 <div class="table-responsive">
+-                    <table class="table table-hover">
++                    <table class="table table-hover align-middle">
+                         <thead>
+                             <tr>
+                                 <th>Nome</th>
+@@ -90,7 +99,7 @@
+                                 <th>Preço</th>
+                                 <th>Estoque</th>
+                                 <th>Data Cadastro</th>
+-                                <th>Ações</th>
++                                <th class="text-center">Ações</th>
+                             </tr>
+                         </thead>
+                         <tbody>
+@@ -105,7 +114,7 @@
+                                     </span>
+                                 </td>
+                                 <td>{{ produto.data_cadastro.strftime('%d/%m/%Y') }}</td>
+-                                <td>
++                                <td class="text-center">
+                                     <div class="btn-group">
+                                         <a href="{{ url_for('editar_produto', id=produto.id) }}" class="btn btn-sm btn-outline-primary">
+                                             <i class="bi bi-pencil"></i>
+@@ -120,16 +129,16 @@
+                             <!-- Modal de Confirmação de Exclusão -->
+                             <div class="modal fade" id="deleteModal{{ produto.id }}" tabindex="-1">
+                                 <div class="modal-dialog">
+-                                    <div class="modal-content">
+-                                        <div class="modal-header">
++                                    <div class="modal-content" style="background: #1a1a2e; color: #f8f9fa;">
++                                        <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                             <h5 class="modal-title">Confirmar Exclusão</h5>
+-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
++                                            <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+                                         </div>
+                                         <div class="modal-body">
+                                             <p>Tem certeza que deseja excluir o produto <strong>{{ produto.nome }}</strong>?</p>
+                                             <p class="text-danger">Esta ação não pode ser desfeita.</p>
+                                         </div>
+-                                        <div class="modal-footer">
++                                        <div class="modal-footer" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                             <form action="{{ url_for('excluir_produto', id=produto.id) }}" method="POST">
+                                                 <button type="submit" class="btn btn-danger">Excluir</button>
+@@ -153,19 +162,19 @@
+                     <ul class="pagination justify-content-center">
+                         {% if produtos.has_prev %}
+                         <li class="page-item">
+-                            <a class="page-link" href="{{ url_for('produtos', page=produtos.prev_num, search=search) }}">Anterior</a>
++                            <a class="page-link" href="{{ url_for('produtos', page=produtos.prev_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">Anterior</a>
+                         </li>
+                         {% endif %}
+ 
+                         {% for page_num in produtos.iter_pages() %}
+                         <li class="page-item {% if page_num == produtos.page %}active{% endif %}">
+-                            <a class="page-link" href="{{ url_for('produtos', page=page_num, search=search) }}">{{ page_num }}</a>
++                            <a class="page-link" href="{{ url_for('produtos', page=page_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">{{ page_num }}</a>
+                         </li>
+                         {% endfor %}
+ 
+                         {% if produtos.has_next %}
+                         <li class="page-item">
+-                            <a class="page-link" href="{{ url_for('produtos', page=produtos.next_num, search=search) }}">Próxima</a>
++                            <a class="page-link" href="{{ url_for('produtos', page=produtos.next_num, search=search) }}" style="background: rgba(255, 255, 255, 0.05); color: #f8f9fa; border: 1px solid rgba(255, 255, 255, 0.1);">Próxima</a>
+                         </li>
+                         {% endif %}
+                     </ul>
+@@ -177,47 +186,303 @@
+ </div>
+ 
+ <style>
+-    .badge {
+-        font-size: 0.85em;
+-        padding: 0.5em 0.75em;
++    :root {
++        --dark-bg: #1a1a2e;
++        --text-light: #f8f9fa;
++        --text-muted: #6c757d;
++        --primary-color: #7c3aed;
++        --secondary-color: #2563eb;
++        --sidebar-width: 280px;
++    }
++
++    body {
++        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
++        color: var(--text-light);
++        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
++        padding: 0;
++        min-height: 100vh;
++    }
++
++    .dashboard-wrapper {
++        display: flex;
++        min-height: 100vh;
++    }
++
++    /* Sidebar Styles */
++    .sidebar {
++        width: var(--sidebar-width);
++        background: rgba(15, 23, 42, 0.95);
++        backdrop-filter: blur(10px);
++        border-right: 1px solid rgba(255, 255, 255, 0.1);
++        padding: 20px 0;
++        display: flex;
++        flex-direction: column;
++        position: fixed;
++        height: 100vh;
++        z-index: 1000;
++        overflow-y: auto;
++    }
++
++    .sidebar-header {
++        padding: 0 20px 20px;
++        text-align: center;
++        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
++        margin-bottom: 20px;
++    }
++
++    .sidebar-logo {
++        max-width: 80px;
++        margin-bottom: 10px;
++        border-radius: 10px;
++    }
++
++    .sidebar-header h3 {
++        color: var(--text-light);
++        font-size: 1.2rem;
++        font-weight: 600;
++        margin: 0;
++    }
++
++    .sidebar-menu {
++        flex: 1;
++        padding: 0 15px;
++    }
++
++    .sidebar-title {
++        color: var(--text-muted);
++        font-size: 0.8rem;
++        text-transform: uppercase;
++        letter-spacing: 1px;
++        margin: 20px 0 10px;
++        padding-left: 10px;
++    }
++
++    .sidebar-link {
++        display: flex;
++        align-items: center;
++        padding: 12px 15px;
++        color: var(--text-light);
++        text-decoration: none;
++        border-radius: 8px;
++        margin-bottom: 5px;
++        transition: all 0.3s ease;
++    }
++
++    .sidebar-link:hover, .sidebar-link.active {
++        background: rgba(37, 99, 235, 0.2);
++        color: var(--text-light);
++        transform: translateX(5px);
++    }
++
++    .sidebar-link i {
++        margin-right: 12px;
++        font-size: 1.1rem;
++        width: 20px;
++        text-align: center;
++    }
++
++    .sidebar-footer {
++        padding: 15px;
++        border-top: 1px solid rgba(255, 255, 255, 0.1);
++    }
++
++    /* Main Content */
++    .dashboard-content {
++        flex: 1;
++        margin-left: var(--sidebar-width);
++        padding: 20px;
++        width: calc(100% - var(--sidebar-width));
++    }
++
++    .dashboard-header {
++        text-align: center;
++        margin-bottom: 30px;
++        padding: 25px;
++        background: rgba(255, 255, 255, 0.05);
++        border-radius: 15px;
++        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
++    }
++
++    .dashboard-header h1 {
++        font-size: 2.8rem;
++        font-weight: 700;
++        margin: 0;
++        color: var(--text-light);
++        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
++    }
++
++    .welcome-text {
++        font-size: 1.2rem;
++        margin-top: 15px !important;
++        color: var(--text-light) !important;
++        opacity: 0.9;
++        font-weight: 400;
+     }
+ 
+-    .sidebar-link.active {
+-        background: rgba(37, 99, 235, 0.3);
++    /* Tabela */
++    .table {
+         color: var(--text-light);
++        background: transparent;
+     }
+ 
+-    .table th {
++    .table thead th {
+         background: rgba(37, 99, 235, 0.2);
+         color: var(--text-light);
+         border: none;
+         font-weight: 600;
+         padding: 15px;
++        text-align: center;
++    }
++
++    .table tbody tr {
++        background: rgba(15, 23, 42, 0.3);
++        transition: background 0.2s ease-in-out;
++    }
++
++    .table tbody tr:nth-child(even) {
++        background: rgba(15, 23, 42, 0.5);
++    }
++
++    .table tbody tr:hover {
++        background: rgba(37, 99, 235, 0.1);
+     }
+ 
+     .table td {
+         padding: 12px;
+-        border-color: rgba(255, 255, 255, 0.1);
+-        vertical-align: middle;
++        text-align: center;
++        border-top: 1px solid rgba(255, 255, 255, 0.1);
++        font-size: 0.9rem;
++    }
++
++    /* Badges */
++    .badge {
++        font-size: 0.75rem;
++        font-weight: 600;
++        padding: 6px 10px;
++        border-radius: 8px;
++        text-transform: capitalize;
++    }
++
++    .badge.bg-success { background: #16a34a !important; }
++    .badge.bg-warning { background: #f59e0b !important; }
++    .badge.bg-danger  { background: #ef4444 !important; }
++
++    /* Botões */
++    .btn {
++        border-radius: 8px;
++        font-weight: 600;
++        transition: all 0.3s ease;
++    }
++
++    .btn-primary {
++        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
++        border: none;
+     }
+ 
+-    .btn-group .btn {
+-        border-radius: 6px;
+-        margin: 0 2px;
++    .btn-outline-primary {
++        border: none;
++        background: rgba(37, 99, 235, 0.15);
++        color: #2563eb;
++    }
++    .btn-outline-primary:hover {
++        background: #2563eb;
++        color: #fff;
+     }
+ 
++    .btn-outline-danger {
++        border: none;
++        background: rgba(239, 68, 68, 0.15);
++        color: #ef4444;
++    }
++    .btn-outline-danger:hover {
++        background: #ef4444;
++        color: #fff;
++    }
++
++    .btn-danger {
++        background: linear-gradient(135deg, #ef4444, #dc2626);
++        border: none;
++    }
++
++    .btn:hover {
++        transform: translateY(-2px);
++        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
++    }
++
++    /* Paginação */
+     .pagination .page-link {
+         background: rgba(255, 255, 255, 0.05);
+         border: 1px solid rgba(255, 255, 255, 0.1);
+-        color: var(--text-light);
++        color: #f8f9fa;
+     }
+ 
+     .pagination .page-item.active .page-link {
+-        background: var(--primary-color);
+-        border-color: var(--primary-color);
++        background: #7c3aed;
++        border-color: #7c3aed;
++    }
++
++    /* Formulários */
++    .form-control {
++        background: rgba(15, 23, 42, 0.5);
++        color: #f8f9fa;
++        border: 1px solid rgba(255, 255, 255, 0.1);
++    }
++
++    .form-control:focus {
++        background: rgba(15, 23, 42, 0.7);
++        color: #f8f9fa;
++        border-color: rgba(37, 99, 235, 0.5);
++        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25);
++    }
++
++    /* Responsividade */
++    @media (max-width: 992px) {
++        .sidebar {
++            width: 70px;
++            overflow: visible;
++        }
++
++        .sidebar-header h3,
++        .sidebar-title,
++        .sidebar-link span {
++            display: none;
++        }
++
++        .sidebar-link {
++            justify-content: center;
++            padding: 15px;
++        }
++
++        .sidebar-link i {
++            margin-right: 0;
++            font-size: 1.3rem;
++        }
++
++        .dashboard-content {
++            margin-left: 70px;
++            width: calc(100% - 70px);
++        }
++
++        .dashboard-header h1 {
++            font-size: 2.2rem;
++        }
++
++        .welcome-text {
++            font-size: 1rem;
++        }
++    }
++
++    @media (max-width: 768px) {
++        .sidebar {
++            display: none;
++        }
++
++        .dashboard-content {
++            margin-left: 0;
++            width: 100%;
++        }
+     }
+ </style>
+ 
+-<!-- Bootstrap JavaScript -->
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+ {% endblock %}
+\ No newline at end of file
+Index: odutech/templates/atendimentos.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/odutech/templates/atendimentos.html b/odutech/templates/atendimentos.html
+--- a/odutech/templates/atendimentos.html
++++ b/odutech/templates/atendimentos.html	(date 1757867004210)
+@@ -102,7 +102,7 @@
+                             <option value="">Todos os meses</option>
+                             {% for i in range(1, 13) %}
+                             <option value="{{ i }}" {% if mes == i|string %}selected{% endif %}>
+-                                {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][i-1] }}
++                                {{ ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][i-1] }}
+                             </option>
+                             {% endfor %}
+                         </select>
+@@ -117,7 +117,7 @@
+         </div>
+ 
+         <!-- Tabela de Atendimentos -->
+-        <div class="card">
++        <div class="card atendimentos-section">
+             <div class="card-body">
+                 <div class="table-responsive">
+                     <table class="table table-hover">
+@@ -230,52 +230,208 @@
+ </div>
+ 
+ <style>
+-    .badge {
+-        font-size: 0.85em;
+-        padding: 0.5em 0.75em;
++    :root {
++        --dark-bg: #1a1a2e;
++        --text-light: #f8f9fa;
++        --text-muted: #6c757d;
++        --primary-color: #7c3aed;
++        --secondary-color: #2563eb;
++        --sidebar-width: 280px;
+     }
+ 
+-    .sidebar-link.active {
+-        background: rgba(37, 99, 235, 0.3);
++    body {
++        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+         color: var(--text-light);
++        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
++    }
++
++    .dashboard-wrapper {
++        display: flex;
++        min-height: 100vh;
++    }
++
++    /* Sidebar */
++    .sidebar {
++        width: var(--sidebar-width);
++        background: rgba(15, 23, 42, 0.95);
++        backdrop-filter: blur(10px);
++        padding: 20px 0;
++        display: flex;
++        flex-direction: column;
++        position: fixed;
++        height: 100vh;
++        overflow-y: auto;
++    }
++
++    .sidebar-header {
++        text-align: center;
++        margin-bottom: 20px;
++    }
++
++    .sidebar-logo {
++        max-width: 80px;
++        margin-bottom: 10px;
++        border-radius: 10px;
+     }
+ 
+-    .table th {
+-        background: rgba(37, 99, 235, 0.2);
++    .sidebar-header h3 {
+         color: var(--text-light);
+-        border: none;
+-        font-weight: 600;
++        font-size: 1.2rem;
++        margin: 0;
++    }
++
++    .sidebar-title {
++        color: var(--text-muted);
++        font-size: 0.8rem;
++        text-transform: uppercase;
++        margin: 20px 0 10px;
++        padding-left: 15px;
++    }
++
++    .sidebar-link {
++        display: flex;
++        align-items: center;
++        padding: 12px 15px;
++        color: var(--text-light);
++        text-decoration: none;
++        border-radius: 8px;
++        margin-bottom: 5px;
++        transition: all 0.3s;
++    }
++
++    .sidebar-link:hover,
++    .sidebar-link.active {
++        background: rgba(124, 58, 237, 0.2);
++        color: var(--text-light);
++        transform: translateX(5px);
++    }
++
++    .sidebar-link i {
++        margin-right: 12px;
++        font-size: 1.1rem;
++    }
++
++    .sidebar-footer {
+         padding: 15px;
++        margin-top: auto;
++    }
++
++    /* Conteúdo */
++    .dashboard-content {
++        flex: 1;
++        margin-left: var(--sidebar-width);
++        padding: 25px;
++    }
++
++    .card {
++        background: rgba(255, 255, 255, 0.05);
++        border: 1px solid rgba(255, 255, 255, 0.1);
++        border-radius: 12px;
++        backdrop-filter: blur(10px);
++    }
++
++    /* ================= TABELA ATUALIZADA ================= */
++    .table thead th {
++        background: #1f2937; /* fundo escuro sólido */
++        color: #f8fafc;
++        font-weight: 600;
++        text-transform: uppercase;
++        font-size: 0.85rem;
++        padding: 12px;
++        text-align: center;
++        border-bottom: 2px solid #374151;
++    }
++
++    .table tbody tr {
++        background: #111827;
++        color: #e5e7eb;
++        transition: background 0.2s ease-in-out;
++    }
++
++    .table tbody tr:nth-child(even) {
++        background: #1e293b;
++    }
++
++    .table tbody tr:hover {
++        background: #374151;
+     }
+ 
+     .table td {
+-        padding: 12px;
+-        border-color: rgba(255, 255, 255, 0.1);
+-        vertical-align: middle;
++        padding: 10px;
++        text-align: center;
++        border-top: 1px solid #374151;
++        font-size: 0.9rem;
++    }
++
++    /* Badges */
++    .badge {
++        font-size: 0.75rem;
++        font-weight: 600;
++        padding: 6px 10px;
++        border-radius: 8px;
++        text-transform: capitalize;
++    }
++
++    .badge.bg-primary { background: #2563eb !important; }
++    .badge.bg-success { background: #16a34a !important; }
++    .badge.bg-warning { background: #f59e0b !important; }
++    .badge.bg-info    { background: #0ea5e9 !important; }
++    .badge.bg-secondary { background: #6d28d9 !important; }
++
++    /* Botões */
++    .btn {
++        border-radius: 8px;
++        font-weight: 600;
++    }
++
++    .btn-outline-info {
++        border: none;
++        background: rgba(14, 165, 233, 0.15);
++        color: #0ea5e9;
++    }
++    .btn-outline-info:hover {
++        background: #0ea5e9;
++        color: #fff;
+     }
+ 
+-    .btn-group .btn {
+-        border-radius: 6px;
+-        margin: 0 2px;
++    .btn-outline-primary {
++        border: none;
++        background: rgba(37, 99, 235, 0.15);
++        color: #2563eb;
++    }
++    .btn-outline-primary:hover {
++        background: #2563eb;
++        color: #fff;
+     }
+ 
++    .btn-outline-danger {
++        border: none;
++        background: rgba(239, 68, 68, 0.15);
++        color: #ef4444;
++    }
++    .btn-outline-danger:hover {
++        background: #ef4444;
++        color: #fff;
++    }
++
++    /* Modal */
++    .modal-content {
++        background: var(--dark-bg);
++        color: var(--text-light);
++        border-radius: 12px;
++    }
++
++    /* Paginação */
+     .pagination .page-link {
+         background: rgba(255, 255, 255, 0.05);
+-        border: 1px solid rgba(255, 255, 255, 0.1);
++        border: none;
+         color: var(--text-light);
+     }
+ 
+     .pagination .page-item.active .page-link {
+         background: var(--primary-color);
+-        border-color: var(--primary-color);
+-    }
+-
+-    .card.text-center {
+-        background: rgba(255, 255, 255, 0.05);
+-        border: 1px solid rgba(255, 255, 255, 0.1);
+     }
+ </style>
+ 
+-<!-- Bootstrap JavaScript -->
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+-{% endblock %}
+\ No newline at end of file
++{% endblock %}
+Index: odutech/templates/form_produto.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/odutech/templates/form_produto.html b/odutech/templates/form_produto.html
+--- a/odutech/templates/form_produto.html
++++ b/odutech/templates/form_produto.html	(date 1757862980173)
+@@ -3,6 +3,12 @@
+ {% block title %}{{ title }} - ODÚ TECH{% endblock %}
+ 
+ {% block content %}
++<div class="dashboard-wrapper">
++    <!-- Menu Lateral (mantido igual) -->
++    <div class="sidebar">
++        <!-- ... conteúdo do sidebar igual ... -->
++    </div>
++
+     <!-- Conteúdo Principal -->
+     <div class="dashboard-content">
+         <!-- Cabeçalho Minimalista com Logo -->
+@@ -11,72 +17,94 @@
+             <span class="text-white fw-bold fs-5">ODÚ TECH</span>
+         </div>
+ 
+-        <!-- Título Simples -->
+-        <h5 class="text-white mb-4 text-center">
+-            <i class="bi bi-box-seam me-2"></i>
+-            {{ title }}
+-        </h5>
++        <div class="row">
++            <div class="col-12">
++                <div class="d-flex justify-content-between align-items-center mb-4">
++                    <h2>
++                        <i class="bi bi-box-seam"></i>
++                        {{ title }}
++                    </h2>
++                    <a href="{{ url_for('produtos') }}" class="btn btn-secondary">
++                        <i class="bi bi-arrow-left"></i> Voltar para Produtos
++                    </a>
++                </div>
++            </div>
++        </div>
+ 
+         <div class="row justify-content-center">
+-            <div class="col-xl-8 col-lg-10">
+-                <div class="card form-card">
+-                    <div class="card-body p-4">
++            <div class="col-xl-8 col-lg-10 col-md-12">
++                <div class="card">
++                    <div class="card-header bg-primary text-white">
++                        <h4 class="mb-0">
++                            <i class="bi bi-box-seam"></i>
++                            {{ title }}
++                        </h4>
++                    </div>
++                    <div class="card-body">
+                         <form method="POST">
+                             {{ form.hidden_tag() }}
+ 
+                             <!-- Nome do Produto -->
+-                            <div class="row mb-4">
+-                                <div class="col-12">
+-                                    <label class="form-label text-white fw-bold">Nome do Produto</label>
+-                                    {{ form.nome(class="form-control", placeholder="Nome do produto") }}
+-                                    {% if form.nome.errors %}
+-                                        {% for error in form.nome.errors %}
+-                                            <div class="text-danger small mt-1">{{ error }}</div>
+-                                        {% endfor %}
+-                                    {% endif %}
++                            <div class="row">
++                                <div class="col-md-12">
++                                    <div class="form-group mb-3">
++                                        {{ form.nome.label(class="form-label fw-bold") }}
++                                        {{ form.nome(class="form-control form-control-lg", placeholder="Nome do produto") }}
++                                        {% if form.nome.errors %}
++                                            {% for error in form.nome.errors %}
++                                                <div class="text-danger small">{{ error }}</div>
++                                            {% endfor %}
++                                        {% endif %}
++                                    </div>
+                                 </div>
+                             </div>
+ 
+                             <!-- Descrição -->
+-                            <div class="row mb-4">
+-                                <div class="col-12">
+-                                    <label class="form-label text-white fw-bold">Descrição</label>
+-                                    {{ form.descricao(class="form-control", rows="3", placeholder="Descrição do produto") }}
++                            <div class="row">
++                                <div class="col-md-12">
++                                    <div class="form-group mb-3">
++                                        {{ form.descricao.label(class="form-label fw-bold") }}
++                                        {{ form.descricao(class="form-control", rows="3", placeholder="Descrição do produto") }}
++                                    </div>
+                                 </div>
+                             </div>
+ 
+                             <!-- Preço e Quantidade -->
+-                            <div class="row mb-4">
++                            <div class="row">
+                                 <div class="col-md-6">
+-                                    <label class="form-label text-white fw-bold">Preço</label>
+-                                    <div class="input-group">
+-                                        <span class="input-group-text">R$</span>
+-                                        {{ form.preco(class="form-control", placeholder="0.00") }}
+-                                    </div>
+-                                    {% if form.preco.errors %}
+-                                        {% for error in form.preco.errors %}
+-                                            <div class="text-danger small mt-1">{{ error }}</div>
+-                                        {% endfor %}
+-                                    {% endif %}
++                                    <div class="form-group mb-3">
++                                        {{ form.preco.label(class="form-label fw-bold") }}
++                                        <div class="input-group">
++                                            <span class="input-group-text">R$</span>
++                                            {{ form.preco(class="form-control", placeholder="0.00") }}
++                                        </div>
++                                        {% if form.preco.errors %}
++                                            {% for error in form.preco.errors %}
++                                                <div class="text-danger small">{{ error }}</div>
++                                            {% endfor %}
++                                        {% endif %}
++                                    </div>
+                                 </div>
+                                 <div class="col-md-6">
+-                                    <label class="form-label text-white fw-bold">Quantidade em Estoque</label>
+-                                    {{ form.quantidade_estoque(class="form-control", type="number", min="0") }}
+-                                    {% if form.quantidade_estoque.errors %}
+-                                        {% for error in form.quantidade_estoque.errors %}
+-                                            <div class="text-danger small mt-1">{{ error }}</div>
+-                                        {% endfor %}
+-                                    {% endif %}
++                                    <div class="form-group mb-3">
++                                        {{ form.quantidade_estoque.label(class="form-label fw-bold") }}
++                                        {{ form.quantidade_estoque(class="form-control", type="number", min="0") }}
++                                        {% if form.quantidade_estoque.errors %}
++                                            {% for error in form.quantidade_estoque.errors %}
++                                                <div class="text-danger small">{{ error }}</div>
++                                            {% endfor %}
++                                        {% endif %}
++                                    </div>
+                                 </div>
+                             </div>
+ 
+                             <!-- Botões -->
+                             <div class="row mt-4">
+-                                <div class="col-md-6 mb-2">
+-                                    {{ form.botao_confirmacao(class="btn btn-primary w-100") }}
++                                <div class="col-md-6">
++                                    {{ form.botao_confirmacao(class="btn btn-primary btn-lg w-100") }}
+                                 </div>
+-                                <div class="col-md-6 mb-2">
+-                                    <a href="{{ url_for('produtos') }}" class="btn btn-outline-light w-100">
++                                <div class="col-md-6">
++                                    <a href="{{ url_for('produtos') }}" class="btn btn-outline-secondary btn-lg w-100">
+                                         Cancelar
+                                     </a>
+                                 </div>
+@@ -98,11 +126,10 @@
+ 
+ <style>
+     .dashboard-content {
+-        padding: 20px;
+-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+-        min-height: 100vh;
++        padding: 30px;
+         display: flex;
+         flex-direction: column;
++        min-height: 100vh;
+     }
+ 
+     .header-minimalista {
+@@ -116,33 +143,44 @@
+         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+     }
+ 
+-    .form-card {
++    .card {
+         border: none;
+         border-radius: 15px;
++        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+         background: rgba(255, 255, 255, 0.05);
+         backdrop-filter: blur(10px);
+-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+-        border: 1px solid rgba(255, 255, 255, 0.1);
++        flex: 1;
++    }
++
++    .card-header {
++        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
++        border-radius: 15px 15px 0 0 !important;
++        border: none;
++        padding: 20px;
++    }
++
++    .card-body {
++        padding: 30px;
+     }
+ 
+     .form-control {
+         border-radius: 10px;
+-        padding: 12px;
++        padding: 14px;
+         border: 1px solid rgba(255, 255, 255, 0.2);
+         background: rgba(255, 255, 255, 0.1);
+-        color: white;
++        color: var(--text-light);
+         font-size: 1rem;
+     }
+ 
+     .form-control:focus {
+-        border-color: #7c3aed;
+-        box-shadow: 0 0 0 0.3rem rgba(124, 58, 237, 0.25);
++        border-color: #2563eb;
++        box-shadow: 0 0 0 0.3rem rgba(37, 99, 235, 0.25);
+         background: rgba(255, 255, 255, 0.15);
+-        color: white;
++        color: var(--text-light);
+     }
+ 
+     .form-label {
+-        color: white;
++        color: var(--text-light);
+         font-weight: 600;
+         margin-bottom: 8px;
+         font-size: 1rem;
+@@ -150,50 +188,53 @@
+ 
+     .btn {
+         border-radius: 10px;
+-        padding: 12px 24px;
++        padding: 14px 28px;
+         font-weight: 600;
+-        font-size: 1rem;
++        font-size: 1.1rem;
+         transition: all 0.3s ease;
+     }
+ 
+     .btn-primary {
+-        background: linear-gradient(135deg, #7c3aed, #2563eb);
++        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+         border: none;
+     }
+ 
+     .btn-primary:hover {
+         transform: translateY(-2px);
+-        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
++        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+     }
+ 
+-    .btn-outline-light {
++    .btn-outline-secondary {
+         border: 2px solid rgba(255, 255, 255, 0.3);
+-        color: white;
++        color: var(--text-light);
+     }
+ 
+-    .btn-outline-light:hover {
++    .btn-outline-secondary:hover {
+         background: rgba(255, 255, 255, 0.1);
+-        border-color: rgba(255, 255, 255, 0.8);
++        border-color: rgba(255, 255, 255, 0.5);
++        color: var(--text-light);
+     }
+ 
+     .text-danger {
+-        color: #ff6b6b !important;
+-        font-size: 0.9rem;
++        color: #ef4444 !important;
++        font-size: 0.85rem;
++        margin-top: 5px;
++    }
++
++    .footer-minimalista {
++        margin-top: auto;
++        padding: 15px;
++        color: var(--text-muted);
+     }
+ 
++    /* Input group styling */
+     .input-group-text {
+         background: rgba(255, 255, 255, 0.1);
+         border: 1px solid rgba(255, 255, 255, 0.2);
+-        color: white;
++        color: var(--text-light);
+         border-radius: 10px 0 0 10px;
+     }
+ 
+-    .footer-minimalista {
+-        margin-top: auto;
+-        padding: 15px;
+-        color: var(--text-muted);
+-    }
+-
+     /* Placeholder styling */
+     .form-control::placeholder {
+         color: rgba(255, 255, 255, 0.6);
+Index: odutech/templates/form_atendimento.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/odutech/templates/form_atendimento.html b/odutech/templates/form_atendimento.html
+--- a/odutech/templates/form_atendimento.html
++++ b/odutech/templates/form_atendimento.html	(date 1757864106259)
+@@ -59,11 +59,15 @@
+                                     <div class="col-md-6">
+                                         <div class="form-group mb-3">
+                                             <label class="form-label fw-bold">Cliente</label>
+-                                            <select name="cliente" class="form-select" required>
+-                                                <option value="" selected>Selecione um cliente...</option>
+-                                                {% for cliente in clientes %}
+-                                                <option value="{{ cliente.id }}">{{ cliente.nome_completo }}</option>
+-                                                {% endfor %}
++                                            <select name="cliente_id" class="form-select" required>
++                                                <option value="" selected disabled>Selecione um cliente...</option>
++                                                {% if clientes %}
++                                                    {% for cliente in clientes %}
++                                                    <option value="{{ cliente.id }}">{{ cliente.nome_completo }}</option>
++                                                    {% endfor %}
++                                                {% else %}
++                                                    <option value="" disabled>Nenhum cliente cadastrado</option>
++                                                {% endif %}
+                                             </select>
+                                         </div>
+                                     </div>
+@@ -80,11 +84,13 @@
+                                         <div class="form-group mb-3">
+                                             <label class="form-label fw-bold">Tipo de Atendimento</label>
+                                             <select name="tipo_atendimento" class="form-select" required>
+-                                                <option value="" selected>Selecione...</option>
++                                                <option value="" selected disabled>Selecione o tipo...</option>
+                                                 <option value="Ebó">Ebó</option>
+                                                 <option value="Gbory">Gbory</option>
+                                                 <option value="Obrigação">Obrigação</option>
+                                                 <option value="Consulta">Consulta</option>
++                                                <option value="Limpeza">Limpeza</option>
++                                                <option value="Amaci">Amaci</option>
+                                             </select>
+                                         </div>
+                                     </div>
+@@ -119,12 +125,13 @@
+                                         <div class="form-group mb-3">
+                                             <label class="form-label fw-bold">Forma de Pagamento</label>
+                                             <select name="forma_pagamento" class="form-select" required>
+-                                                <option value="" selected>Selecione...</option>
++                                                <option value="" selected disabled>Selecione a forma...</option>
+                                                 <option value="Dinheiro">Dinheiro</option>
+                                                 <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                                 <option value="Cartão de Débito">Cartão de Débito</option>
+                                                 <option value="PIX">PIX</option>
+                                                 <option value="Transferência Bancária">Transferência Bancária</option>
++                                                <option value="Débito Automático">Débito Automático</option>
+                                             </select>
+                                         </div>
+                                     </div>
+@@ -231,24 +238,44 @@
+     .form-control, .form-select {
+         border-radius: 10px;
+         padding: 14px;
+-        border: 1px solid rgba(255, 255, 255, 0.2);
+-        background: rgba(255, 255, 255, 0.1);
+-        color: var(--text-light);
++        border: 1px solid rgba(255, 255, 255, 0.3); /* Borda mais visível */
++        background: rgba(255, 255, 255, 0.15); /* Fundo mais claro para melhor contraste */
++        color: #e2e8f0 !important; /* Cor do texto mais clara e visível */
+         font-size: 1rem;
++        transition: all 0.3s ease;
+     }
+ 
+     .form-control:focus, .form-select:focus {
+         border-color: #2563eb;
+         box-shadow: 0 0 0 0.3rem rgba(37, 99, 235, 0.25);
+-        background: rgba(255, 255, 255, 0.15);
+-        color: var(--text-light);
++        background: rgba(255, 255, 255, 0.2); /* Fundo ainda mais claro no focus */
++        color: #ffffff !important; /* Texto branco no focus para melhor contraste */
++    }
++
++    /* Melhorar a visibilidade do placeholder */
++    .form-control::placeholder {
++        color: rgba(255, 255, 255, 0.7) !important; /* Placeholder mais visível */
++    }
++
++    /* Estilizar as opções dos selects para melhor contraste */
++    .form-select option {
++        background-color: #2d3748; /* Fundo escuro para as opções */
++        color: #e2e8f0; /* Texto claro */
++        padding: 12px;
++    }
++
++    /* Placeholder dos selects (opção desabilitada) */
++    .form-select option[disabled] {
++        color: #a0aec0 !important; /* Cor cinza para texto desabilitado */
++        font-style: italic;
+     }
+ 
+     .form-label {
+-        color: var(--text-light);
++        color: #e2e8f0; /* Texto mais claro para labels */
+         font-weight: 600;
+         margin-bottom: 8px;
+         font-size: 1rem;
++        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Sombra suave para melhor contraste */
+     }
+ 
+     .btn {
+@@ -270,13 +297,13 @@
+     }
+ 
+     .btn-outline-secondary {
+-        border: 2px solid rgba(255, 255, 255, 0.3);
++        border: 2px solid rgba(255, 255, 255, 0.4); /* Borda mais visível */
+         color: var(--text-light);
+     }
+ 
+     .btn-outline-secondary:hover {
+-        background: rgba(255, 255, 255, 0.1);
+-        border-color: rgba(255, 255, 255, 0.5);
++        background: rgba(255, 255, 255, 0.15); /* Fundo mais claro no hover */
++        border-color: rgba(255, 255, 255, 0.8);
+         color: var(--text-light);
+     }
+ 
+@@ -284,6 +311,7 @@
+         color: #ef4444 !important;
+         font-size: 0.85rem;
+         margin-top: 5px;
++        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+     }
+ 
+     .footer-minimalista {
+@@ -294,16 +322,17 @@
+ 
+     /* Input group styling */
+     .input-group-text {
+-        background: rgba(255, 255, 255, 0.1);
+-        border: 1px solid rgba(255, 255, 255, 0.2);
+-        color: var(--text-light);
++        background: rgba(255, 255, 255, 0.15); /* Fundo mais claro */
++        border: 1px solid rgba(255, 255, 255, 0.3); /* Borda mais visível */
++        color: #e2e8f0; /* Texto mais claro */
+         border-radius: 10px 0 0 10px;
++        font-weight: 500;
+     }
+ 
+     /* Optional badge styling */
+     .optional-badge {
+-        background-color: rgba(160, 174, 192, 0.2);
+-        color: var(--text-muted);
++        background-color: rgba(160, 174, 192, 0.3); /* Fundo mais visível */
++        color: #e2e8f0; /* Texto mais claro */
+         font-size: 0.75rem;
+         padding: 4px 8px;
+         border-radius: 4px;
+@@ -311,19 +340,17 @@
+         font-weight: normal;
+     }
+ 
+-    /* Placeholder styling */
+-    .form-control::placeholder {
+-        color: rgba(255, 255, 255, 0.6);
+-    }
+-
+     /* Date input styling */
+     .form-control[type="date"] {
+         color-scheme: dark;
+     }
+ 
+-    /* Select dropdown styling */
++    /* Select dropdown styling - seta mais visível */
+     .form-select {
+-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0aec0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
++        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='%23e2e8f0' stroke='%23e2e8f0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
++        background-repeat: no-repeat;
++        background-position: right 14px center;
++        background-size: 16px 12px;
+     }
+ </style>
+ 
+Index: odutech/templates/criarconta.html
+===================================================================
+diff --git a/odutech/templates/criarconta.html b/odutech/templates/criarconta.html
+deleted file mode 100644
+--- a/odutech/templates/criarconta.html
++++ /dev/null
+@@ -1,88 +0,0 @@
+-{% extends "base.html" %}
+-
+-{% block title %}Criar Conta - ODÚ TECH{% endblock %}
+-
+-{% block content %}
+-<div style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+-    <div class="login-container">
+-        <div class="logo-section">
+-            <h1 class="site-name">Criar Conta</h1>
+-            <p class="site-tagline">Junte-se à ODÚ TECH</p>
+-        </div>
+-
+-        <form method="POST">
+-            {{ form.hidden_tag() }}
+-
+-            <div class="form-group">
+-                {{ form.username.label(class="form-label") }}
+-                {{ form.username(class="form-control", placeholder="Seu nome de usuário") }}
+-                {% if form.username.errors %}
+-                    {% for error in form.username.errors %}
+-                        <div class="text-danger">{{ error }}</div>
+-                    {% endfor %}
+-                {% endif %}
+-            </div>
+-
+-            <div class="form-group">
+-                {{ form.email.label(class="form-label") }}
+-                {{ form.email(class="form-control", placeholder="seu@email.com") }}
+-                {% if form.email.errors %}
+-                    {% for error in form.email.errors %}
+-                        <div class="text-danger">{{ error }}</div>
+-                    {% endfor %}
+-                {% endif %}
+-            </div>
+-
+-            <div class="form-group">
+-                {{ form.senha.label(class="form-label") }}
+-                {{ form.senha(class="form-control", placeholder="Crie uma senha") }}
+-                {% if form.senha.errors %}
+-                    {% for error in form.senha.errors %}
+-                        <div class="text-danger">{{ error }}</div>
+-                    {% endfor %}
+-                {% endif %}
+-            </div>
+-
+-            <div class="form-group">
+-                {{ form.confirmacao_senha.label(class="form-label") }}
+-                {{ form.confirmacao_senha(class="form-control", placeholder="Confirme sua senha") }}
+-                {% if form.confirmacao_senha.errors %}
+-                    {% for error in form.confirmacao_senha.errors %}
+-                        <div class="text-danger">{{ error }}</div>
+-                    {% endfor %}
+-                {% endif %}
+-            </div>
+-
+-            <button type="submit" class="btn-login">
+-                {{ form.botao_confirmacao.label.text }}
+-            </button>
+-        </form>
+-
+-        <div class="create-account">
+-            <p>Já tem uma conta? <a href="{{ url_for('homepage') }}">Faça login</a></p>
+-        </div>
+-    </div>
+-</div>
+-
+-<!-- Adicione os mesmos estilos do homepage.html aqui -->
+-<style>
+-    .login-container {
+-        background: rgba(255, 255, 255, 0.05);
+-        backdrop-filter: blur(20px);
+-        border-radius: 20px;
+-        padding: 40px;
+-        width: 100%;
+-        max-width: 450px;
+-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+-        border: 1px solid rgba(255, 255, 255, 0.1);
+-    }
+-
+-    .text-danger {
+-        color: #ef4444 !important;
+-        font-size: 0.9rem;
+-        margin-top: 5px;
+-    }
+-
+-    /* Reutilize os outros estilos do homepage.html */
+-</style>
+-{% endblock %}
+\ No newline at end of file
+Index: odutech/__init__.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/odutech/__init__.py b/odutech/__init__.py
+--- a/odutech/__init__.py
++++ b/odutech/__init__.py	(date 1757872321142)
+@@ -4,21 +4,31 @@
+ from flask_bcrypt import Bcrypt
+ from flask_wtf.csrf import CSRFProtect
+ 
+-app = Flask(__name__)
++# Inicializar extensões PRIMEIRO
++db = SQLAlchemy()
++bcrypt = Bcrypt()
++login_manager = LoginManager()
++csrf = CSRFProtect()  # Nome correto: csrf, não csrypt
++
++def create_app():
++    app = Flask(__name__)
+ 
+-# Configurações
+-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///comunidade.db'
+-app.config['SECRET_KEY'] = '5563bafbd7bald301ca61fc591227446'
+-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
++    # Configurações
++    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///comunidade.db'
++    app.config['SECRET_KEY'] = '5563bafbd7bald301ca61fc591227446'
++    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+ 
+-# Inicializar extensões
+-database = SQLAlchemy(app)
+-bcrypt = Bcrypt(app)
+-login_manager = LoginManager(app)
+-csrf = CSRFProtect(app)
++    # Inicializar extensões com a app
++    db.init_app(app)
++    bcrypt.init_app(app)
++    login_manager.init_app(app)
++    csrf.init_app(app)  # Correção aqui: csrf.init_app(app)
+ 
+-login_manager.login_view = 'homepage'
+-login_manager.login_message = 'Por favor, faça login para acessar esta página.'
++    login_manager.login_view = 'routes.login'
++    login_manager.login_message = 'Por favor, faça login para acessar esta página.'
+ 
+-# Importar rotas DEPOIS de inicializar as extensões
+-from odutech import routes
+\ No newline at end of file
++    # Importar e registrar blueprints DEPOIS de inicializar as extensões
++    from odutech.routes import bp
++    app.register_blueprint(bp)
++
++    return app
+\ No newline at end of file
+Index: migrate.py
+===================================================================
+diff --git a/migrate.py b/migrate.py
+deleted file mode 100644
+--- a/migrate.py
++++ /dev/null
+@@ -1,85 +0,0 @@
+-from odutech import app, database
+-from odutech.models import Usuario, Atendimento, Cliente, Produto
+-import sqlite3
+-import os
+-
+-
+-def migrate_database():
+-    with app.app_context():
+-        # Conectar ao banco existente
+-        db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+-
+-        if not os.path.exists(db_path):
+-            print("Banco de dados não encontrado. Criando novo...")
+-            database.create_all()
+-            return
+-
+-        # Verificar se a coluna id_cliente já existe
+-        conn = sqlite3.connect(db_path)
+-        cursor = conn.cursor()
+-
+-        try:
+-            # Verificar estrutura da tabela atendimento
+-            cursor.execute("PRAGMA table_info(atendimento)")
+-            columns = [column[1] for column in cursor.fetchall()]
+-
+-            if 'id_cliente' not in columns:
+-                print("Adicionando coluna id_cliente à tabela atendimento...")
+-
+-                # Adicionar a coluna id_cliente
+-                cursor.execute("ALTER TABLE atendimento ADD COLUMN id_cliente INTEGER")
+-
+-                # Adicionar a constraint de chave estrangeira
+-                cursor.execute("""
+-                               CREATE TABLE atendimento_new
+-                               (
+-                                   id               INTEGER      NOT NULL,
+-                                   data_atendimento DATETIME     NOT NULL,
+-                                   executor         VARCHAR(100) NOT NULL,
+-                                   procedimentos    VARCHAR(200) NOT NULL,
+-                                   valor_total      FLOAT        NOT NULL,
+-                                   forma_pagamento  VARCHAR(50),
+-                                   tipo_atendimento VARCHAR(50)  NOT NULL,
+-                                   detalhes         TEXT,
+-                                   id_usuario       INTEGER      NOT NULL,
+-                                   id_cliente       INTEGER      NOT NULL,
+-                                   PRIMARY KEY (id),
+-                                   FOREIGN KEY (id_usuario) REFERENCES usuario (id),
+-                                   FOREIGN KEY (id_cliente) REFERENCES cliente (id)
+-                               )
+-                               """)
+-
+-                # Copiar dados para a nova tabela
+-                cursor.execute("""
+-                               INSERT INTO atendimento_new
+-                               SELECT id,
+-                                      data_atendimento,
+-                                      executor,
+-                                      procedimentos,
+-                                      valor_total,
+-                                      forma_pagamento,
+-                                      tipo_atendimento,
+-                                      detalhes,
+-                                      id_usuario,
+-                                      1
+-                               FROM atendimento
+-                               """)
+-
+-                # Remover tabela antiga e renomear nova
+-                cursor.execute("DROP TABLE atendimento")
+-                cursor.execute("ALTER TABLE atendimento_new RENAME TO atendimento")
+-
+-                print("Migração concluída com sucesso!")
+-            else:
+-                print("A coluna id_cliente já existe. Nenhuma migração necessária.")
+-
+-        except sqlite3.Error as e:
+-            print(f"Erro durante a migração: {e}")
+-            conn.rollback()
+-        finally:
+-            conn.commit()
+-            conn.close()
+-
+-
+-if __name__ == '__main__':
+-    migrate_database()
+\ No newline at end of file
+Index: criar_dados_teste.py
+===================================================================
+diff --git a/criar_dados_teste.py b/criar_dados_teste.py
+deleted file mode 100644
+--- a/criar_dados_teste.py
++++ /dev/null
+@@ -1,83 +0,0 @@
+-from odutech import app, database
+-from odutech.models import Usuario, Atendimento
+-from datetime import datetime, timedelta
+-from flask_bcrypt import Bcrypt
+-
+-
+-def criar_dados_teste():
+-    with app.app_context():
+-        # Criar usuário de teste se não existir
+-        usuario = Usuario.query.filter_by(email='teste@email.com').first()
+-        if not usuario:
+-            bcrypt = Bcrypt()
+-            senha_hash = bcrypt.generate_password_hash('senha123').decode('utf-8')
+-            usuario = Usuario(
+-                username='teste',
+-                email='teste@email.com',
+-                senha=senha_hash
+-            )
+-            database.session.add(usuario)
+-            database.session.commit()
+-            print("✅ Usuário teste criado: teste@email.com / senha123")
+-
+-        # Criar atendimentos de teste com os novos tipos
+-        atendimentos = [
+-            {
+-                'nome_cliente': 'Maria Silva',
+-                'executor': 'Pai João',
+-                'procedimentos': 'Ebó de Descarrego',
+-                'valor_total': 150.00,
+-                'forma_pagamento': 'dinheiro',
+-                'tipo_atendimento': 'ebó',
+-                'detalhes': 'Ebó completo com todos os elementos'
+-            },
+-            {
+-                'nome_cliente': 'João Santos',
+-                'executor': 'Mãe Maria',
+-                'procedimentos': 'Gbory de Prosperidade',
+-                'valor_total': 200.00,
+-                'forma_pagamento': 'pix',
+-                'tipo_atendimento': 'gbory',
+-                'detalhes': 'Trabalho para abertura de caminhos'
+-            },
+-            {
+-                'nome_cliente': 'Ana Oliveira',
+-                'executor': 'Pai Carlos',
+-                'procedimentos': 'Obrigação de 7 anos',
+-                'valor_total': 500.00,
+-                'forma_pagamento': 'cartão',
+-                'tipo_atendimento': 'obrigacao',
+-                'detalhes': 'Obrigação completa com todos os rituais'
+-            },
+-            {
+-                'nome_cliente': 'Pedro Costa',
+-                'executor': 'Mãe Rita',
+-                'procedimentos': 'Consulta espiritual',
+-                'valor_total': 80.00,
+-                'forma_pagamento': 'dinheiro',
+-                'tipo_atendimento': 'atendimento',
+-                'detalhes': 'Consulta e passe espiritual'
+-            }
+-        ]
+-
+-        for i, atendimento_data in enumerate(atendimentos):
+-            atendimento = Atendimento(
+-                data_atendimento=datetime.now() - timedelta(days=i),
+-                nome_cliente=atendimento_data['nome_cliente'],
+-                executor=atendimento_data['executor'],
+-                procedimentos=atendimento_data['procedimentos'],
+-                valor_total=atendimento_data['valor_total'],
+-                forma_pagamento=atendimento_data['forma_pagamento'],
+-                tipo_atendimento=atendimento_data['tipo_atendimento'],
+-                detalhes=atendimento_data['detalhes'],
+-                id_usuario=usuario.id
+-            )
+-            database.session.add(atendimento)
+-
+-        database.session.commit()
+-        print("✅ Dados de teste criados com sucesso!")
+-        print("📊 Foram criados 4 atendimentos de exemplo")
+-
+-
+-if __name__ == '__main__':
+-    criar_dados_teste()
+\ No newline at end of file

@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}Detalhes do Atendimento - ODÚ TECH{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  <div class="dashboard-content">
+    <!-- Cabeçalho -->
+    <div class="header-minimalista text-center mb-4">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="logo-pequeno me-2" style="height:35px;">
+      <span class="text-white fw-bold fs-5">ODÚ TECH</span>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2><i class="bi bi-info-circle"></i> Detalhes do Atendimento</h2>
+      <a href="{{ url_for('atendimentos_lista') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar para Atendimentos
+      </a>
+    </div>
+
+    <!-- Card principal -->
+    <div class="card detalhes-card">
+      <div class="card-body">
+        <div class="row g-4">
+          <!-- Cliente -->
+          <div class="col-md-6">
+            <h5 class="form-section-title"><i class="bi bi-person"></i> Cliente</h5>
+            <p class="mb-1"><span class="label">Nome:</span> <span class="value">{{ atendimento.cliente.nome }}</span></p>
+            <p class="mb-1"><span class="label">Idade:</span> <span class="value">{{ atendimento.cliente.idade_atual() }}</span></p>
+            <p class="mb-1"><span class="label">Telefone:</span> <span class="value">{{ atendimento.cliente.telefone or '-' }}</span></p>
+            <p class="mb-0"><span class="label">Email:</span> <span class="value">{{ atendimento.cliente.email or '-' }}</span></p>
+          </div>
+
+          <!-- Atendimento -->
+          <div class="col-md-6">
+            <h5 class="form-section-title"><i class="bi bi-clipboard-check"></i> Atendimento</h5>
+            <p class="mb-1"><span class="label">Data:</span> <span class="value">{{ atendimento.data_atendimento.strftime('%d/%m/%Y %H:%M') }}</span></p>
+            <p class="mb-1"><span class="label">Executor:</span> <span class="value">{{ atendimento.executor }}</span></p>
+            <p class="mb-1"><span class="label">Tipo:</span> <span class="value">{{ atendimento.tipo_atendimento }}</span></p>
+            <p class="mb-0"><span class="label">Forma de Pagamento:</span> <span class="value">{{ atendimento.forma_pagamento or '-' }}</span></p>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Procedimentos -->
+        <div class="mb-4">
+          <h5 class="form-section-title"><i class="bi bi-journal-text"></i> Procedimentos</h5>
+          <div class="box">{{ atendimento.procedimentos }}</div>
+        </div>
+
+        <!-- Valor -->
+        <div class="mb-4">
+          <h5 class="form-section-title"><i class="bi bi-currency-dollar"></i> Valor</h5>
+          <div class="value-chip">Total <strong>R$ {{ "%.2f"|format(atendimento.valor_total) }}</strong></div>
+        </div>
+
+        {% if atendimento.detalhes %}
+        <div class="mb-4">
+          <h5 class="form-section-title"><i class="bi bi-file-earmark-text"></i> Detalhes Adicionais</h5>
+          <div class="box">{{ atendimento.detalhes }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Ações -->
+        <div class="row mt-3">
+          <div class="col-md-6">
+            <a href="{{ url_for('editar_atendimento', id=atendimento.id) }}" class="btn btn-primary w-100">
+              <i class="bi bi-pencil me-1"></i>Editar
+            </a>
+          </div>
+          <div class="col-md-6">
+            <a href="{{ url_for('atendimentos_lista') }}" class="btn btn-outline-secondary w-100">
+              ← Voltar
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-minimalista text-center mt-4">
+      <p class="text-muted small mb-0">Copyright © ODÚ TECH - {{ now.year }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ============================================================
+   DETALHES DO ATENDIMENTO — PALETA CLARA (AZUL / BRANCO / CINZA)
+   Igual ao Novo Atendimento e Novo Produto
+   ============================================================ */
+
+:root {
+  --light-bg: #ffffff;
+  --surface: #f3f4f6;
+  --border: #e5e7eb;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --primary: #2563eb;
+  --primary-2: #3b82f6;
+  --primary-deep: #1e3a8a;
+  --shadow-rgb: 17, 24, 39;
+}
+
+/* ===== Fundo principal ===== */
+body {
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* ===== Cabeçalho superior (ODÚ TECH) ===== */
+.header-minimalista {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+  position: relative;
+}
+
+.header-minimalista img.logo-pequeno {
+  height: 42px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.header-minimalista .titulo-empresa {
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== Botão Voltar ===== */
+.btn-voltar {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f1f5f9;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-voltar:hover {
+  background: #e2e8f0;
+  color: var(--primary-deep);
+  transform: translateY(-50%) scale(1.03);
+}
+
+/* ===== Card principal ===== */
+.detalhes-card {
+  background: var(--light-bg);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgba(var(--shadow-rgb), 0.06);
+  color: var(--text);
+  padding: 24px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.detalhes-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(var(--shadow-rgb), 0.08);
+}
+
+/* ===== Títulos de Seções ===== */
+.form-section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid var(--primary);
+  color: var(--primary-deep);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form-section-title i {
+  color: var(--primary);
+}
+
+/* ===== Rótulos e valores ===== */
+.label {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-right: 6px;
+}
+.value {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ===== Divisores ===== */
+.divider {
+  border-color: var(--border);
+  margin: 12px 0;
+}
+
+/* ===== Box leve ===== */
+.box {
+  background: var(--light-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 12px rgba(var(--shadow-rgb), 0.04);
+}
+
+/* ===== Chips (valor total) ===== */
+.value-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff !important;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.value-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.35);
+}
+
+/* ===== Botões ===== */
+.btn {
+  border-radius: 10px;
+  font-weight: 700;
+  padding: 12px 20px;
+  font-size: 1rem;
+  transition: all 0.25s ease;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  border: none;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.35);
+}
+.btn-outline-secondary {
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: #fff;
+}
+.btn-outline-secondary:hover {
+  background: #f3f4f6;
+  border-color: #cbd5e1;
+  color: var(--primary-deep);
+}
+
+/* ===== Rodapé ===== */
+.footer-minimalista {
+  margin-top: 40px;
+  padding: 15px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border);
+  background: var(--light-bg);
+  border-radius: 12px;
+  box-shadow: 0 -4px 18px rgba(var(--shadow-rgb), 0.05);
+}
+
+/* ===== Responsivo ===== */
+@media (max-width: 768px) {
+  .header-minimalista .titulo-empresa { font-size: 1.1rem; }
+  .detalhes-card { padding: 18px; }
+  .value-chip { padding: 8px 12px; font-size: 0.9rem; }
+}
+
+</style>
+
+{% endblock %}

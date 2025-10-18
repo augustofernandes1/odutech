@@ -1,0 +1,770 @@
+{% extends "base.html" %}
+{% block title %}Cliente • {{ cliente.nome }} - ODÚ TECH{% endblock %}
+
+{% block content %}
+{# ==== helper local para moeda BRL (sem mexer no init) ==== #}
+{% macro brl(v) -%}
+  R$ {{ "{:,.2f}".format((v or 0)|float).replace(",", "§").replace(".", ",").replace("§", ".") }}
+{%- endmacro %}
+
+<div class="dashboard-wrapper">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="sidebar-logo">
+      <h3>ODÚ TECH</h3>
+    </div>
+
+    <div class="sidebar-menu">
+      <h6 class="sidebar-title">Cadastros</h6>
+      <a href="{{ url_for('novo_cliente') }}" class="sidebar-link">
+        <i class="bi bi-person-plus"></i><span>Cadastrar Clientes</span>
+      </a>
+      <a href="{{ url_for('novo_produto') }}" class="sidebar-link">
+        <i class="bi bi-box-seam"></i><span>Registrar Produtos</span>
+      </a>
+      <a href="{{ url_for('novo_atendimento') }}" class="sidebar-link">
+        <i class="bi bi-calendar-check"></i><span>Registrar Atendimento</span>
+      </a>
+
+      <h6 class="sidebar-title">Visualizações</h6>
+      <a href="{{ url_for('atendimentos_lista') }}" class="sidebar-link">
+        <i class="bi bi-cash-coin"></i><span>Ver Todas as Vendas</span>
+      </a>
+      <a href="{{ url_for('produtos') }}" class="sidebar-link">
+        <i class="bi bi-boxes"></i><span>Ver Todos os Produtos</span>
+      </a>
+      <a href="{{ url_for('clientes') }}" class="sidebar-link">
+        <i class="bi bi-people"></i><span>Ver Todos os Clientes</span>
+      </a>
+      <a href="{{ url_for('perfil', id_usuario=current_user.id) }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('sair') }}" class="sidebar-link">
+        <i class="bi bi-box-arrow-right"></i><span>Sair</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="dashboard-content">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="d-flex align-items-center justify-content-center">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ODÚ TECH Logo" class="me-3" style="height:50px;">
+        <h1>Ficha do Cliente</h1>
+      </div>
+      <p class="welcome-text">Resumo completo, dados rituais e lançamentos de <strong>{{ cliente.nome }}</strong></p>
+    </div>
+
+    <!-- Ações principais (com avatar) -->
+    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+      <div class="d-flex align-items-center gap-3">
+        {# Avatar clicável: abre modal com a foto #}
+        <div
+          class="cliente-avatar {% if cliente.foto_path %}cliente-avatar--clickable{% endif %}"
+          {% if cliente.foto_path %}
+            role="button"
+            title="Ver foto"
+            data-bs-toggle="modal"
+            data-bs-target="#modalFotoCliente"
+          {% endif %}
+        >
+          {% if cliente.foto_path %}
+            <img src="{{ url_for('static', filename=cliente.foto_path) }}" alt="Foto de {{ cliente.nome }}">
+          {% else %}
+            <div class="cliente-avatar__placeholder" title="Sem foto">
+              <i class="bi bi-person-circle"></i>
+            </div>
+          {% endif %}
+        </div>
+
+        <h2 class="m-0"><i class="bi bi-person-badge"></i> {{ cliente.nome }}</h2>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('cliente_rituais', id=cliente.id) }}" class="btn btn-outline-primary">
+          <i class="bi bi-magic"></i> Editar Ficha Ritual
+        </a>
+        <a href="{{ url_for('editar_cliente', id=cliente.id) }}" class="btn btn-outline-primary">
+          <i class="bi bi-pencil"></i> Editar Cliente
+        </a>
+        <a href="{{ url_for('cliente_novo_atendimento', id=cliente.id) }}" class="btn btn-primary">
+          <i class="bi bi-plus-circle"></i> Novo Atendimento
+        </a>
+      </div>
+    </div>
+
+    <!-- Cards de informações -->
+    <div class="row g-3 mb-4">
+      <!-- Dados pessoais -->
+      <div class="col-lg-4">
+        <div class="info-card">
+          <div class="info-card-head">
+            <i class="bi bi-card-text"></i>
+            <span>Dados Pessoais</span>
+          </div>
+          <div class="info-grid">
+            <div><small>Nome</small><p class="px-clip" title="{{ cliente.nome }}">{{ cliente.nome }}</p></div>
+            <div><small>Data de Nasc.</small><p>{{ cliente.data_nascimento.strftime('%d/%m/%Y') }}</p></div>
+            <div><small>Idade</small><p>{{ cliente.idade_atual() }} anos</p></div>
+            <div><small>Nome da Mãe</small><p class="px-clip" title="{{ cliente.nome_mae }}">{{ cliente.nome_mae }}</p></div>
+            <div><small>Telefone</small><p>{{ cliente.telefone or '-' }}</p></div>
+            <div><small>E-mail</small><p class="px-clip" title="{{ cliente.email or '-' }}">{{ cliente.email or '-' }}</p></div>
+            <div><small>Endereço</small><p class="px-clip" title="{{ cliente.endereco or '-' }}">{{ cliente.endereco or '-' }}</p></div>
+            <div class="col-12"><small>Observações</small><p class="px-clip" title="{{ cliente.observacoes or '-' }}">{{ cliente.observacoes or '-' }}</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Iniciação -->
+      <div class="col-lg-4">
+        <div class="info-card">
+          <div class="info-card-head">
+            <i class="bi bi-fire"></i>
+            <span>Iniciação</span>
+          </div>
+          <div class="info-grid">
+            <div><small>Data de Iniciação</small>
+              <p>{{ cliente.data_iniciacao.strftime('%d/%m/%Y') if cliente.data_iniciacao else '-' }}</p>
+            </div>
+            <div><small>Tempo de Iniciação</small>
+              <p>
+                {% if cliente.tempo_iniciacao() is not none %}
+                  <span class="badge bg-info">{{ cliente.tempo_iniciacao() }} anos</span>
+                {% else %}-{% endif %}
+              </p>
+            </div>
+            <div class="col-12"><small>Cadastro</small><p>{{ cliente.data_cadastro.strftime('%d/%m/%Y %H:%M') }}</p></div>
+
+            <div><small>Orunkó</small><p class="px-clip" title="{{ cliente.orunko or '-' }}">{{ cliente.orunko or '-' }}</p></div>
+            <div><small>Orixá</small><p class="px-clip" title="{{ cliente.orixa or '-' }}">{{ cliente.orixa or '-' }}</p></div>
+            <div><small>Ajuntó</small><p class="px-clip" title="{{ cliente.ajunto or '-' }}">{{ cliente.ajunto or '-' }}</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ficha Ritual -->
+      <div class="col-lg-4">
+        <div class="info-card">
+          <div class="info-card-head">
+            <i class="bi bi-stars"></i>
+            <span>Ficha Iniciático</span>
+          </div>
+          <div class="info-grid">
+            <div><small>Navalha (Quem iniciou)</small><p class="px-clip" title="{{ cliente.navalha or '-' }}">{{ cliente.navalha or '-' }}</p></div>
+            <div><small>Babakekere (Pai Pequeno)</small><p class="px-clip" title="{{ cliente.babakekere or '-' }}">{{ cliente.babakekere or '-' }}</p></div>
+            <div><small>Iyakekere (Mãe Pequena)</small><p class="px-clip" title="{{ cliente.iyakekere or '-' }}">{{ cliente.iyakekere or '-' }}</p></div>
+            <div><small>Ojubonã (Pai/Mãe Criador(a))</small><p class="px-clip" title="{{ cliente.ojubona or '-' }}">{{ cliente.ojubona or '-' }}</p></div>
+            <div><small>Padrinho de Orunkó</small><p class="px-clip" title="{{ cliente.padrinho or '-' }}">{{ cliente.padrinho or '-' }}</p></div>
+            <div><small>Madrinha de Orunkó</small><p class="px-clip" title="{{ cliente.madrinha or '-' }}">{{ cliente.madrinha or '-' }}</p></div>
+
+            <div class="col-12">
+              <small>Orixás Assentados</small>
+              <p>
+                {% set _lista = (cliente.orixas_assentados_raw or '').split(',') %}
+                {% set tem = false %}
+                {% for item in _lista %}
+                  {% set nome = item.strip() %}
+                  {% if nome %}
+                    {% set tem = true %}
+                    <span class="badge bg-primary me-1 mb-1">{{ nome }}</span>
+                  {% endif %}
+                {% endfor %}
+                {% if not tem %}-{% endif %}
+              </p>
+            </div>
+          </div>
+          <div class="mt-2 text-end">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('cliente_rituais', id=cliente.id) }}">
+              <i class="bi bi-pencil-square"></i> Atualizar ficha
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumo de atendimentos -->
+    <div class="row metrics-row mb-3">
+      <div class="col-md-4">
+        <div class="metric-card">
+          <div class="metric-icon" style="background: rgba(37, 99, 235, 0.2);"><i class="bi bi-list-check" style="color:#2563eb;"></i></div>
+          <div class="metric-info">
+            <h3>{{ atendimentos|length }}</h3>
+            <p>Total de Atendimentos</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="metric-card">
+          <div class="metric-icon" style="background: rgba(16, 185, 129, 0.2);"><i class="bi bi-currency-dollar" style="color:#10b981;"></i></div>
+          <div class="metric-info">
+            <h3 class="nowrap">{{ brl((atendimentos|map(attribute='valor_total')|sum) or 0) }}</h3>
+            <p>Valor Acumulado</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="metric-card">
+          <div class="metric-icon" style="background: rgba(124,58,237,0.2);"><i class="bi bi-graph-up" style="color:#7c3aed;"></i></div>
+          <div class="metric-info">
+            {% set qt = atendimentos|length %}
+            {% set soma = (atendimentos|map(attribute='valor_total')|sum) or 0 %}
+            <h3 class="nowrap">{{ brl(qt and (soma / qt) or 0) }}</h3>
+            <p>Ticket Médio</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Atendimentos -->
+    <div class="card" style="background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="m-0"><i class="bi bi-receipt"></i> Atendimentos do Cliente</h3>
+          <a href="{{ url_for('cliente_novo_atendimento', id=cliente.id) }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Novo Atendimento
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Executor</th>
+                <th>Produto / Procedimento</th>
+                <th>Tipo</th>
+                <th>Pagamento</th>
+                <th>Valor</th>
+                <th class="text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in atendimentos %}
+              <tr>
+                <td>{{ a.data_atendimento.strftime('%d/%m/%Y') }}</td>
+                <td>{{ a.executor }}</td>
+                <td>
+                  {% if a.produto %}
+                    <span class="badge rounded-pill bg-primary" style="font-weight:600;">{{ a.produto.nome }}</span>
+                  {% else %}
+                    <span class="text-muted">{{ a.procedimentos or '-' }}</span>
+                  {% endif %}
+                </td>
+                <td><span class="badge bg-info">{{ a.tipo_atendimento|title }}</span></td>
+                <td>
+                  {% set p = (a.forma_pagamento or '').lower() %}
+                  <span class="badge
+                    {% if 'pix' in p %} bg-success
+                    {% elif 'crédit' in p or 'credit' in p %} bg-primary
+                    {% elif 'débit' in p or 'debit' in p %} bg-primary
+                    {% elif 'dinheiro' in p %} bg-secondary
+                    {% else %} bg-dark {% endif %}">
+                    {{ a.forma_pagamento or '-' }}
+                  </span>
+                </td>
+                <td>{{ brl(a.valor_total) }}</td>
+                <td class="text-center">
+                  <div class="btn-group">
+                    <a href="{{ url_for('detalhes_atendimento', id=a.id) }}" class="btn btn-sm btn-outline-primary" title="Detalhes">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ url_for('editar_atendimento', id=a.id) }}" class="btn btn-sm btn-outline-primary" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#del{{ a.id }}" title="Excluir">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <div class="modal fade" id="del{{ a.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content" style="background:#1a1a2e; color:#f8f9fa;">
+                    <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,.1);">
+                      <h5 class="modal-title">Confirmar Exclusão</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+                    </div>
+                    <div class="modal-body">
+                      Tem certeza que deseja excluir este atendimento?
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,.1);">
+                      <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <form action="{{ url_for('excluir_atendimento', id=a.id) }}" method="POST" class="m-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-danger">Excluir</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% else %}
+              <tr><td colspan="7" class="text-center">Nenhum atendimento cadastrado para este cliente.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {# ======= Documentos do Cliente (tabela com botão Anexar no cabeçalho) ======= #}
+    <div class="info-card mb-3 docs-card">
+      <div class="info-card-head d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-paperclip"></i>
+          <span>Documentos do Cliente</span>
+        </div>
+
+        <!-- Form discreto: botão chama o input file e envia ao escolher -->
+        <form id="docUploadForm" method="POST" action="{{ url_for('cliente_upload_documento', id=cliente.id) }}" enctype="multipart/form-data" class="m-0">
+          {{ form_doc.hidden_tag() }}
+          <input id="docFileInput" name="{{ form_doc.arquivo.name }}" type="file" accept=".pdf,.doc,.docx" class="d-none">
+          <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('docFileInput').click()">
+            <i class="bi bi-plus-lg"></i> Anexar
+          </button>
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th class="col-arquivo">Arquivo</th>
+              <th class="col-size">Tamanho</th>
+              <th class="col-date">Enviado em</th>
+              <th class="col-actions text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if documentos and documentos|length %}
+              {% for d in documentos %}
+                <tr>
+                  <td class="col-arquivo">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span title="{{ d.filename_original }}">{{ d.filename_original }}</span>
+                  </td>
+                  <td class="col-size">
+                    {% if d.size_bytes %}
+                      {% set kb = (d.size_bytes / 1024) %}
+                      {{ "%.1f KB"|format(kb) if kb < 1024 else "%.2f MB"|format(kb/1024) }}
+                    {% else %}-{% endif %}
+                  </td>
+                  <td class="col-date">{{ d.uploaded_at.strftime("%d/%m/%Y %H:%M") }}</td>
+                  <td class="col-actions text-end">
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('cliente_download_documento', doc_id=d.id) }}" title="Download">
+                      <i class="bi bi-download"></i>
+                    </a>
+                    <form action="{{ url_for('cliente_excluir_documento', doc_id=d.id) }}" method="POST" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button class="btn btn-sm btn-outline-danger" title="Excluir" onclick="return confirm('Excluir este documento?')">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="4" class="text-muted">Nenhum documento anexado ainda.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {# ======= /Documentos do Cliente ======= #}
+
+  </div>
+</div>
+
+{# ===== Modal da foto do cliente ===== #}
+<div class="modal fade" id="modalFotoCliente" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-foto">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">{{ cliente.nome }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body p-0 d-flex justify-content-center align-items-center">
+        {% if cliente.foto_path %}
+          <img src="{{ url_for('static', filename=cliente.foto_path) }}" alt="Foto de {{ cliente.nome }}" class="foto-ampliada">
+        {% else %}
+          <div class="p-4 text-center text-muted">Sem foto para exibir.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===========================================================
+   CLIENTE_DETALHES — CSS COMPLETO COM PALETA UNIFICADA AZUL
+   =========================================================== */
+
+:root {
+  --light-bg: #ffffff;
+  --surface: #f3f4f6;
+  --border: #e5e7eb;
+  --text: #111827;
+  --text-muted: #6b7280;
+
+  --primary: #2563eb;
+  --primary-2: #3b82f6;
+  --primary-deep: #1e3a8a;
+
+  --shadow-1: 0 6px 18px rgba(17, 24, 39, 0.06);
+  --shadow-2: 0 12px 26px rgba(17, 24, 39, 0.1);
+}
+
+/* -------- BASE -------- */
+body {
+  background: linear-gradient(135deg, #ffffff 0%, var(--surface) 100%) !important;
+  color: var(--text) !important;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+.dashboard-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* -------- SIDEBAR -------- */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, var(--primary-deep) 0%, var(--primary) 100%) !important;
+  backdrop-filter: blur(10px);
+  color: #fff !important;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 4px 0 24px rgba(37, 99, 235, 0.15);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+.sidebar-header {
+  padding: 0 20px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 20px;
+}
+.sidebar-logo {
+  max-width: 80px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+}
+.sidebar-header h3 {
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+.sidebar-menu {
+  flex: 1;
+  padding: 0 15px;
+}
+.sidebar-title {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 20px 0 10px;
+  padding-left: 10px;
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  color: #f8fafc !important;
+  text-decoration: none;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  transition: 0.25s ease;
+}
+.sidebar-link:hover,
+.sidebar-link.active {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #fff !important;
+  transform: translateX(5px);
+}
+.sidebar-link i {
+  margin-right: 12px;
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+.sidebar-footer {
+  padding: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* -------- CONTEÚDO -------- */
+.dashboard-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 20px;
+  background: var(--surface) !important;
+}
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 25px;
+  background: var(--light-bg);
+  border-radius: 15px;
+  box-shadow: var(--shadow-1);
+  border: 1px solid var(--border);
+}
+.dashboard-header h1 {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  margin: 0;
+}
+.welcome-text {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* -------- AVATAR -------- */
+.cliente-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  box-shadow: var(--shadow-1);
+}
+.cliente-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cliente-avatar__placeholder i {
+  font-size: 2rem;
+  color: var(--text-muted);
+}
+
+/* -------- CARDS -------- */
+.metric-card,
+.info-card {
+  background: var(--light-bg);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: var(--shadow-1);
+}
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-2);
+}
+.metric-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+.metric-info h3 {
+  margin: 0;
+  color: var(--text);
+}
+.metric-info p {
+  color: var(--text-muted);
+  margin: 0;
+}
+.info-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary);
+  font-weight: 700;
+}
+.info-card-head i {
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+.info-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.info-grid small {
+  color: var(--text-muted);
+}
+.info-grid p {
+  color: var(--text);
+  margin: 0;
+}
+
+/* -------- TABELAS -------- */
+.card .table thead th {
+  background: #eff6ff !important;
+  color: var(--text) !important;
+  border: none !important;
+  border-bottom: 1px solid #dbeafe !important;
+}
+.card .table tbody tr {
+  background: #fff !important;
+  border: 1px solid var(--border) !important;
+}
+.card .table-hover tbody tr:hover {
+  background: #f8fbff !important;
+}
+.card .table tbody td {
+  color: var(--text) !important;
+  border-top: 1px solid var(--border) !important;
+}
+.docs-card .table thead th {
+  background: #eff6ff !important;
+  color: var(--text) !important;
+}
+.docs-card .table tbody td {
+  color: var(--text) !important;
+  border-top: 1px solid var(--border) !important;
+}
+.docs-card .table-hover tbody tr:hover td {
+  background: #eef2ff !important;
+}
+
+/* -------- BOTÕES -------- */
+.btn {
+  border-radius: 10px;
+  font-weight: 700;
+  transition: 0.2s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+  border: none;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+.btn-primary:hover {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+.btn-outline-primary {
+  border: 1px solid #c7d2fe;
+  background: #e0e7ff;
+  color: var(--primary-deep);
+}
+.btn-outline-primary:hover {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-outline-danger {
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.btn-outline-danger:hover {
+  background: #ef4444;
+  color: #fff;
+}
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: none;
+  color: #fff;
+}
+
+/* -------- BADGES -------- */
+.badge.bg-info {
+  background: #0ea5e9 !important;
+  color: #fff;
+}
+.badge.bg-success {
+  background: #16a34a !important;
+  color: #fff;
+}
+.badge.bg-warning {
+  background: #f59e0b !important;
+  color: #fff;
+}
+.badge.bg-danger {
+  background: #ef4444 !important;
+  color: #fff;
+}
+
+/* -------- MODAL FOTO -------- */
+.modal-foto {
+  background: #ffffff !important;
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-2);
+}
+.modal-foto .modal-header {
+  border-bottom: 1px solid var(--border);
+}
+.foto-ampliada {
+  box-shadow: var(--shadow-1);
+  border-radius: 10px;
+}
+
+/* -------- RESPONSIVIDADE -------- */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 70px;
+  }
+  .sidebar-header h3,
+  .sidebar-title,
+  .sidebar-link span {
+    display: none;
+  }
+  .sidebar-link {
+    justify-content: center;
+  }
+  .dashboard-content {
+    margin-left: 70px;
+  }
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .dashboard-content {
+    margin-left: 0;
+  }
+}
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Expansão/recolhimento ao clicar em textos truncados
+  document.addEventListener('click', function (e) {
+    const p = e.target.closest('.px-clip');
+    if (!p) return;
+    p.classList.toggle('is-expanded');
+  });
+
+  // Envio do arquivo de documento assim que o usuário escolher
+  (function(){
+    const input = document.getElementById('docFileInput');
+    if(!input) return;
+    input.addEventListener('change', function(){
+      if (this.files && this.files.length){
+        document.getElementById('docUploadForm').submit();
+      }
+    });
+  })();
+</script>
+{% endblock %}
