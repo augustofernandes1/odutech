@@ -1,0 +1,27 @@
+﻿# Python
+.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+
+# Env / secrets
+.env
+.env.*
+
+# Bancos locais
+*.db
+*.sqlite3
+instance/
+
+# Uploads gerados em runtime (usar Volume no Railway)
+static/uploads/
+
+# Bytecode / cache
+*.pyc
