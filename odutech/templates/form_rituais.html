@@ -143,55 +143,252 @@
 </div>
 
 <style>
+/* =======================================================
+   DASHBOARD UNIFICADO - MESMA PALETA E ESTILOS
+   ======================================================= */
+
+/* -------- Paleta clara azul -------- */
 :root{
-  --dark-bg:#1a1a2e; --text-light:#f8f9fa; --text-muted:#6c757d;
-  --primary-color:#7c3aed; --secondary-color:#2563eb; --sidebar-width:280px;
+  --light-bg:#ffffff;
+  --surface:#f3f4f6;      /* fundo geral */
+  --border:#e5e7eb;       /* bordas sutis */
+  --text:#111827;         /* texto principal */
+  --text-muted:#6b7280;   /* texto secundário */
+
+  --primary:#2563eb;      /* azul principal */
+  --primary-2:#3b82f6;    /* azul gradiente */
+  --primary-deep:#1e3a8a; /* azul profundo */
+  --accent:#0ea5e9;
+
+  --sidebar-width:280px;
+
+  --shadow-1: 0 6px 18px rgba(17,24,39,.06);
+  --shadow-2: 0 10px 26px rgba(17,24,39,.10);
 }
-body{ background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%); color:var(--text-light);
-      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:0; min-height:100vh; }
+
+/* -------- Base -------- */
+body{
+  background: linear-gradient(135deg,#ffffff 0%, var(--surface) 100%) !important;
+  color: var(--text) !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin:0; padding:0; min-height:100vh;
+}
 .dashboard-wrapper{ display:flex; min-height:100vh; }
 
-/* Sidebar */
-.sidebar{ width:var(--sidebar-width); background:rgba(15,23,42,.95); backdrop-filter:blur(10px);
-  border-right:1px solid rgba(255,255,255,.1); padding:20px 0; display:flex; flex-direction:column;
-  position:fixed; height:100vh; overflow-y:auto; z-index:1000; }
-.sidebar-header{ padding:0 20px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,.1); margin-bottom:20px; }
-.sidebar-logo{ max-width:80px; margin-bottom:10px; border-radius:10px; }
-.sidebar-header h3{ color:var(--text-light); font-size:1.2rem; font-weight:600; margin:0; }
+/* -------- Sidebar (degradê azul) -------- */
+.sidebar{
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, var(--primary-deep) 0%, var(--primary) 100%) !important;
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(0,0,0,.06) !important;
+  padding: 20px 0; display:flex; flex-direction:column;
+  position: fixed; height: 100vh; z-index: 1000; overflow-y: auto;
+  color:#fff !important;
+  box-shadow: 4px 0 24px rgba(37,99,235,.15) !important;
+}
+.sidebar-header{
+  padding:0 20px 20px;
+  text-align:center;
+  border-bottom:1px solid rgba(255,255,255,.15) !important;
+  margin-bottom:20px;
+}
+.sidebar-logo{
+  max-width:80px;
+  margin-bottom:10px;
+  border-radius:10px;
+  padding:5px;
+}
+.sidebar-header h3{
+  color:#fff !important;
+  font-size:1.2rem;
+  font-weight:600;
+  margin:0;
+}
 .sidebar-menu{ flex:1; padding:0 15px; }
-.sidebar-title{ color:var(--text-muted); font-size:.8rem; text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px; padding-left:10px; }
-.sidebar-link{ display:flex; align-items:center; padding:12px 15px; color:var(--text-light); text-decoration:none; border-radius:8px; margin-bottom:5px; transition:.3s; }
-.sidebar-link:hover,.sidebar-link.active{ background:rgba(37,99,235,.2); transform:translateX(5px); }
-.sidebar-link i{ margin-right:12px; font-size:1.1rem; width:20px; text-align:center; }
-.sidebar-footer{ padding:15px; border-top:1px solid rgba(255,255,255,.1); }
+.sidebar-title{
+  color:rgba(255,255,255,.75) !important;
+  font-size:.8rem;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin:20px 0 10px;
+  padding-left:10px;
+}
+.sidebar-link{
+  display:flex; align-items:center; padding:12px 15px;
+  color:#f8fafc !important; text-decoration:none; border-radius:8px;
+  margin-bottom:5px; transition:.25s ease; border:1px solid transparent;
+}
+.sidebar-link:hover, .sidebar-link.active{
+  background: rgba(255,255,255,.18) !important;
+  color:#fff !important; transform: translateX(5px);
+}
+.sidebar-link i{
+  margin-right:12px;
+  font-size:1.1rem;
+  width:20px;
+  text-align:center;
+  color:rgba(255,255,255,.95);
+}
+.sidebar-footer{
+  padding:15px;
+  border-top:1px solid rgba(255,255,255,.15) !important;
+  color:rgba(255,255,255,.9);
+  text-align:center;
+}
 
-/* Conteúdo */
-.dashboard-content{ flex:1; margin-left:var(--sidebar-width); padding:20px; }
-.dashboard-header{ text-align:center; margin-bottom:30px; padding:25px; background:rgba(255,255,255,.05); border-radius:15px; box-shadow:0 8px 32px rgba(0,0,0,.2); }
-.dashboard-header h1{ font-size:2.6rem; font-weight:700; margin:0; }
-.welcome-text{ font-size:1.05rem; margin-top:8px; opacity:.9; }
+/* -------- Conteúdo -------- */
+.dashboard-content{
+  flex:1; margin-left: var(--sidebar-width); padding:20px;
+  width: calc(100% - var(--sidebar-width));
+  background: var(--surface) !important;
+}
 
-/* Inputs */
-.form-control{ background: rgba(15,23,42,.5); color:#f8f9fa; border:1px solid rgba(255,255,255,.1); }
+/* Header da página */
+.dashboard-header{
+  text-align:center; margin-bottom:30px; padding:25px;
+  background: var(--light-bg) !important;
+  border-radius:15px; box-shadow: var(--shadow-1) !important;
+  border:1px solid var(--border) !important;
+}
+.dashboard-header h1{
+  font-size:2.8rem; font-weight:700; margin:0;
+  color: var(--primary-deep) !important; text-shadow:none !important;
+}
+.welcome-text{
+  font-size:1.2rem;
+  margin-top:15px !important;
+  color: var(--text-muted) !important;
+  opacity:.95;
+}
+
+/* -------- Tabela -------- */
+.table{
+  color: var(--text) !important;
+  background: transparent !important;
+  border-collapse: separate !important;
+  border-spacing: 0 6px !important;
+}
+.table thead th{
+  background:#eff6ff !important;
+  color: var(--text) !important;
+  border:none !important; font-weight:700 !important;
+  padding:15px !important; text-align:center !important;
+  border-radius:6px 6px 0 0 !important;
+}
+.table tbody tr{
+  background:#ffffff !important;
+  border:1px solid var(--border) !important;
+  transition: background .2s ease-in-out;
+  box-shadow: var(--shadow-1) !important;
+}
+.table tbody tr:nth-child(even){ background:#ffffff !important; }
+.table tbody tr:hover{
+  background:#f8fbff !important;
+  border-color:#dbeafe !important;
+  box-shadow: var(--shadow-2) !important;
+}
+.table td{
+  padding:12px !important; text-align:center !important;
+  border-top:1px solid rgba(0,0,0,0) !important;
+  font-size:.95rem !important; color: var(--text) !important;
+}
+.table tbody tr td:first-child{ border-radius:10px 0 0 10px !important; }
+.table tbody tr td:last-child { border-radius:0 10px 10px 0 !important; }
+
+/* -------- Badges -------- */
+.badge{
+  font-size:.75rem !important; font-weight:700 !important;
+  padding:6px 10px !important; border-radius:999px !important;
+  text-transform:capitalize;
+}
+.badge.bg-info    { background:#0ea5e9 !important; color:#fff !important; }
+.badge.bg-success { background:#16a34a !important; color:#fff !important; }
+.badge.bg-warning { background:#f59e0b !important; color:#fff !important; }
+.badge.bg-danger  { background:#ef4444 !important; color:#fff !important; }
+
+/* -------- Formulários -------- */
+.form-control{
+  background:#ffffff !important; color: var(--text) !important;
+  border:1px solid var(--border) !important; border-radius:12px !important;
+  height:44px; box-shadow:none !important;
+  padding:12px 14px !important;
+}
+.form-control::placeholder{ color: var(--text-muted) !important; }
 .form-control:focus{
-  background: rgba(15,23,42,.7); color:#f8f9fa;
-  border-color: rgba(37,99,235,.5); box-shadow: 0 0 0 0.25rem rgba(37,99,235,.25);
+  border-color:#bfdbfe !important;
+  box-shadow: 0 0 0 0.25rem rgba(37,99,235,.15) !important;
 }
 
-/* Botões */
-.btn{ border-radius:8px; font-weight:600; transition:.3s; }
-.btn-primary{ background:linear-gradient(135deg,var(--primary-color),var(--secondary-color)); border:none; color:#fff; }
-.btn-outline-danger{ border:none; background:rgba(239,68,68,.15); color:#ef4444; }
-.btn-outline-danger:hover{ background:#ef4444; color:#fff; }
-
-/* Responsivo */
-@media(max-width:992px){
-  .sidebar{ width:70px; }
-  .sidebar-header h3,.sidebar-title,.sidebar-link span{ display:none; }
-  .sidebar-link{ justify-content:center; }
-  .dashboard-content{ margin-left:70px; }
+/* -------- Botões -------- */
+.btn{
+  border-radius:10px;
+  font-weight:700;
+  transition:.2s;
+  padding:12px 20px;
 }
-@media(max-width:768px){ .sidebar{ display:none; } .dashboard-content{ margin-left:0; } }
+.btn-primary{
+  background: linear-gradient(135deg, var(--primary-deep), var(--primary)) !important;
+  border:none !important; color:#fff !important;
+  box-shadow: 0 8px 18px rgba(37,99,235,.20) !important;
+}
+.btn-primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(37,99,235,.28) !important;
+}
+.btn-outline-primary{
+  border:none !important; background:#e0e7ff !important; color: var(--primary-deep) !important;
+}
+.btn-outline-primary:hover{ background: var(--primary) !important; color:#fff !important; }
+.btn-outline-secondary,
+.btn-light{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  color:var(--text) !important;
+}
+.btn-outline-secondary:hover,
+.btn-light:hover{
+  background:#f3f4f6 !important;
+  border-color:#cbd5e1 !important;
+}
+.btn-outline-danger{
+  border:none !important;
+  background:#fee2e2 !important;
+  color:#b91c1c !important;
+}
+.btn-outline-danger:hover{
+  background:#ef4444 !important;
+  color:#fff !important;
+}
+.btn-danger{
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border:none !important;
+  color:#fff !important;
+}
+
+/* -------- Paginação -------- */
+.pagination .page-link{
+  background:#ffffff !important; border:1px solid var(--border) !important;
+  color: var(--text) !important; border-radius:10px !important;
+}
+.pagination .page-item.active .page-link{
+  background: var(--primary) !important;
+  border-color: var(--primary) !important; color:#fff !important;
+}
+
+/* -------- Responsividade -------- */
+@media (max-width: 992px){
+  .sidebar{ width:70px; overflow:visible; }
+  .sidebar-header h3, .sidebar-title, .sidebar-link span{ display:none; }
+  .sidebar-link{ justify-content:center; padding:15px; }
+  .sidebar-link i{ margin-right:0; font-size:1.3rem; }
+  .dashboard-content{ margin-left:70px; width:calc(100% - 70px); }
+  .dashboard-header h1{ font-size:2.2rem; }
+  .welcome-text{ font-size:1rem; }
+}
+@media (max-width: 768px){
+  .sidebar{ display:none; }
+  .dashboard-content{ margin-left:0; width:100%; padding:20px; }
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
