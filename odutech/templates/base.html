@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/png">
 
-    <!-- CSS e ícones -->
+    <!-- Bootstrap e ícones -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 
@@ -35,6 +35,7 @@
             min-height: 100vh;
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 0;
+            visibility: hidden; /* Anti-piscada */
         }
 
         .container-custom {
@@ -69,9 +70,18 @@
             border: 1px solid rgba(59, 130, 246, 0.3);
         }
     </style>
+
+    <!-- Anti-FOUC Script (mostra a página somente após carregar completamente) -->
+    <script>
+        window.addEventListener("load", function() {
+            document.body.style.visibility = "visible";
+        });
+    </script>
 </head>
+
 <body>
     <div class="container-custom">
+
         <!-- Mensagens Flash -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -79,7 +89,8 @@
                     {% for category, message in messages %}
                         <div class="alert alert-{{ category }} alert-dismissible fade show">
                             {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="this.parentElement.style.display='none'"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                onclick="this.parentElement.style.display='none'"></button>
                         </div>
                     {% endfor %}
                 </div>
@@ -88,15 +99,20 @@
 
         {% block content %}
         {% endblock %}
+
     </div>
 
+    <!-- JS do Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        // Esconde alertas após 5 segundos
+        // Oculta alertas automaticamente após 5 segundos
         setTimeout(function() {
             document.querySelectorAll('.alert').forEach(function(alert) {
                 alert.style.display = 'none';
             });
         }, 5000);
     </script>
+
 </body>
 </html>
