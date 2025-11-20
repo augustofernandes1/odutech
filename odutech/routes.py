@@ -1,4 +1,3 @@
-# odutech/routes.py
 from flask import render_template, redirect, url_for, flash, request, send_from_directory, abort
 from odutech import app, database, bcrypt
 from odutech.models import Usuario, Atendimento, Cliente, Produto, ClienteDocumento
@@ -32,9 +31,9 @@ def _cliente_docs_dir(user_id: int, cliente_id: int) -> str:
     """
     Diretório físico para documentos do cliente dentro de:
         UPLOAD_DOCS_FOLDER/u<user>/c<cliente>
-    Ex.: /data/uploads/docs/u1/c3  ou  .../static/uploads/docs/u1/c3
+    Ex.: .../static/uploads/docs/u1/c3
     """
-    base = app.config['UPLOAD_DOCS_FOLDER']  # .../uploads/docs
+    base = app.config['UPLOAD_DOCS_FOLDER']  # .../static/uploads/docs
     d = os.path.join(base, f"u{user_id}", f"c{cliente_id}")
     os.makedirs(d, exist_ok=True)
     return d
@@ -46,7 +45,7 @@ def _save_file_to(dir_path: str, file_storage, filename: str = None) -> (str, st
     Retorna (abs_path, stored_name).
     """
     os.makedirs(dir_path, exist_ok=True)
-    original = secure_filename(filename or (file_storage.filename or "arquivo"))
+    original = secure_filename(filename or (getattr(file_storage, "filename", "") or "arquivo"))
     ext = os.path.splitext(original)[1].lower()
     unique = uuid.uuid4().hex
     stored_name = f"{unique}{ext}"
@@ -57,32 +56,39 @@ def _save_file_to(dir_path: str, file_storage, filename: str = None) -> (str, st
 
 def _to_static_rel(abs_path: str) -> str:
     """
-    Converte um caminho absoluto dentro de BASE_UPLOADS para um caminho
+    Converte um caminho absoluto dentro de UPLOADS_ROOT para um caminho
     relativo à pasta /static, sempre começando com 'uploads/...'.
 
     Ex.:
-      BASE_UPLOADS = /data/uploads
-      abs_path     = /data/uploads/fotos/c1/x.jpg
+      UPLOADS_ROOT = .../static/uploads
+      abs_path     = .../static/uploads/fotos/c1/x.jpg
       retorno      = 'uploads/fotos/c1/x.jpg'
 
     Assim, url_for('static', filename=...) gera /static/uploads/...
-    e o symlink static/uploads -> BASE_UPLOADS é respeitado.
     """
-    base = app.config['UPLOADS_ROOT']  # /data/uploads ou .../static/uploads
+    base = app.config['UPLOADS_ROOT']  # .../static/uploads
     rel_from_base = os.path.relpath(abs_path, base).replace("\\", "/")
     return f"uploads/{rel_from_base}"
 
 
 def _save_photo(file_storage, cliente_id: int) -> str:
     """
-    Salva a foto do cliente em uploads/fotos (volume ou static).
+    Salva a foto do cliente em static/uploads/fotos.
     Retorna o caminho relativo a /static para armazenar no banco (foto_path).
     """
-    photos_dir = app.config['UPLOAD_PHOTOS_FOLDER']  # /data/uploads/fotos ou .../static/uploads/fotos
+    photos_dir = app.config['UPLOAD_PHOTOS_FOLDER']  # .../static/uploads/fotos
     photos_dir = os.path.join(photos_dir, f"c{cliente_id}")
     abs_path, stored_name = _save_file_to(photos_dir, file_storage)
-    rel_path = _to_static_rel(abs_path)
+    rel_path = _to_static_rel(abs_path)  # 'uploads/fotos/cX/arquivo.png'
     return rel_path
+
+
+def _has_uploaded_file(file_storage) -> bool:
+    """
+    Retorna True se realmente veio um arquivo (filename não vazio).
+    Evita tentar salvar quando o usuário não escolheu nada.
+    """
+    return bool(file_storage and getattr(file_storage, "filename", "").strip())
 
 
 # ==============================
@@ -217,7 +223,7 @@ def novo_cliente():
             database.session.commit()
 
             # Foto (se enviada)
-            if hasattr(form, 'foto') and form.foto.data:
+            if hasattr(form, 'foto') and _has_uploaded_file(form.foto.data):
                 try:
                     rel_path = _save_photo(form.foto.data, cliente.id)
                     cliente.foto_path = rel_path
@@ -253,7 +259,7 @@ def editar_cliente(id):
             cliente.observacoes = form.observacoes.data
 
             # Atualiza foto se enviada
-            if hasattr(form, 'foto') and form.foto.data:
+            if hasattr(form, 'foto') and _has_uploaded_file(form.foto.data):
                 try:
                     rel_path = _save_photo(form.foto.data, cliente.id)
                     cliente.foto_path = rel_path

@@ -30,37 +30,26 @@ if DB_URL.startswith('sqlite:///'):
     print(f"[init] Usando banco SQLite em: {db_path}")
 
 # =========================
-# Uploads persistentes
+# Uploads (sempre em static/uploads)
 # =========================
-# Railway → VOLUME_DIR = /data
-VOLUME_DIR = os.getenv('VOLUME_DIR')
-if VOLUME_DIR:
-    BASE_UPLOADS = os.path.join(VOLUME_DIR, 'uploads')  # /data/uploads
-else:
-    BASE_UPLOADS = os.path.join(app.root_path, 'static', 'uploads')  # local
+# Vamos simplificar: todos os uploads vão pra pasta dentro de /static/uploads.
+# Isso funciona igual local e no Railway, e é exatamente de onde o Flask serve
+# arquivos estáticos com url_for('static', ...).
 
+static_dir = os.path.join(app.root_path, 'static')
+os.makedirs(static_dir, exist_ok=True)
+
+BASE_UPLOADS = os.path.join(static_dir, 'uploads')
 os.makedirs(BASE_UPLOADS, exist_ok=True)
+
+app.config['UPLOADS_ROOT'] = BASE_UPLOADS
 app.config['UPLOAD_PHOTOS_FOLDER'] = os.path.join(BASE_UPLOADS, 'fotos')
 app.config['UPLOAD_DOCS_FOLDER'] = os.path.join(BASE_UPLOADS, 'docs')
+
 for p in (app.config['UPLOAD_PHOTOS_FOLDER'], app.config['UPLOAD_DOCS_FOLDER']):
     os.makedirs(p, exist_ok=True)
 
-app.config['UPLOADS_ROOT'] = BASE_UPLOADS
 app.config.setdefault('MAX_CONTENT_LENGTH', 16 * 1024 * 1024)
-
-# =========================
-# Symlink /static/uploads -> Volume (em produção)
-# =========================
-try:
-    static_uploads = os.path.join(app.root_path, 'static', 'uploads')
-    if not os.path.exists(static_uploads):
-        if VOLUME_DIR and os.name != 'nt':
-            os.makedirs(os.path.join(app.root_path, 'static'), exist_ok=True)
-            os.symlink(BASE_UPLOADS, static_uploads)
-        else:
-            os.makedirs(static_uploads, exist_ok=True)
-except Exception as e:
-    print(f"[warn] Falha ao criar symlink de uploads: {e}", file=sys.stderr)
 
 # =========================
 # Extensões Flask
