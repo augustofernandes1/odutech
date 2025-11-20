@@ -89,7 +89,7 @@ class Produto(database.Model):
     nome = database.Column(database.String(100), nullable=False)
     descricao = database.Column(database.Text)
     preco = database.Column(database.Float, nullable=False, default=0.0)
-    quantidade_estoque = database.Column(database.Integer, nullable=False, default=0)
+    quantidade_estoque = database.Column(database.Integer, nullable=True, default=0)
     data_cadastro = database.Column(database.DateTime, nullable=False, default=datetime.utcnow)
 
     id_usuario = database.Column(database.Integer, database.ForeignKey('usuario.id'), nullable=False)
