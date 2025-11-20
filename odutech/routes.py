@@ -29,8 +29,12 @@ def _norm(s: str) -> str:
 
 
 def _cliente_docs_dir(user_id: int, cliente_id: int) -> str:
-    """Diretório físico para documentos do cliente dentro de static/uploads/docs/uX/cY."""
-    base = app.config['UPLOAD_DOCS_FOLDER']  # .../static/uploads/docs
+    """
+    Diretório físico para documentos do cliente dentro de:
+        UPLOAD_DOCS_FOLDER/u<user>/c<cliente>
+    Ex.: /data/uploads/docs/u1/c3  ou  .../static/uploads/docs/u1/c3
+    """
+    base = app.config['UPLOAD_DOCS_FOLDER']  # .../uploads/docs
     d = os.path.join(base, f"u{user_id}", f"c{cliente_id}")
     os.makedirs(d, exist_ok=True)
     return d
@@ -51,16 +55,33 @@ def _save_file_to(dir_path: str, file_storage, filename: str = None) -> (str, st
     return abs_path, stored_name
 
 
+def _to_static_rel(abs_path: str) -> str:
+    """
+    Converte um caminho absoluto dentro de BASE_UPLOADS para um caminho
+    relativo à pasta /static, sempre começando com 'uploads/...'.
+
+    Ex.:
+      BASE_UPLOADS = /data/uploads
+      abs_path     = /data/uploads/fotos/c1/x.jpg
+      retorno      = 'uploads/fotos/c1/x.jpg'
+
+    Assim, url_for('static', filename=...) gera /static/uploads/...
+    e o symlink static/uploads -> BASE_UPLOADS é respeitado.
+    """
+    base = app.config['UPLOADS_ROOT']  # /data/uploads ou .../static/uploads
+    rel_from_base = os.path.relpath(abs_path, base).replace("\\", "/")
+    return f"uploads/{rel_from_base}"
+
+
 def _save_photo(file_storage, cliente_id: int) -> str:
     """
-    Salva a foto do cliente em static/uploads/fotos.
+    Salva a foto do cliente em uploads/fotos (volume ou static).
     Retorna o caminho relativo a /static para armazenar no banco (foto_path).
     """
-    photos_dir = app.config['UPLOAD_PHOTOS_FOLDER']  # .../static/uploads/fotos
-    # opcional: subpastas por cliente
+    photos_dir = app.config['UPLOAD_PHOTOS_FOLDER']  # /data/uploads/fotos ou .../static/uploads/fotos
     photos_dir = os.path.join(photos_dir, f"c{cliente_id}")
     abs_path, stored_name = _save_file_to(photos_dir, file_storage)
-    rel_path = os.path.relpath(abs_path, os.path.join(app.root_path, 'static')).replace("\\", "/")
+    rel_path = _to_static_rel(abs_path)
     return rel_path
 
 
@@ -318,7 +339,7 @@ def cliente_rituais(id):
             cliente.madrinha = form.madrinha.data
             cliente.orixa = form.orixa.data
             cliente.ajunto = form.ajunto.data
-            # Se você também adicionou Orunkó e orixás assentados no form dedicado, trate aqui:
+            # Orunkó e orixás assentados, se presentes no form
             if hasattr(form, 'orunko'):
                 cliente.orunko = form.orunko.data
             if hasattr(form, 'orixas_assentados_raw'):
@@ -365,7 +386,9 @@ def cliente_upload_documento(id):
     target_dir = _cliente_docs_dir(current_user.id, cliente.id)
     abs_path, stored_name = _save_file_to(target_dir, f, filename_orig)
 
-    rel_path = os.path.relpath(abs_path, os.path.join(app.root_path, 'static')).replace('\\', '/')
+    # Caminho relativo a /static (sempre começando com uploads/...)
+    rel_path = _to_static_rel(abs_path)
+
     size_bytes = os.path.getsize(abs_path)
     mimetype = f.mimetype
 
@@ -390,6 +413,7 @@ def cliente_download_documento(doc_id):
     if doc.id_usuario != current_user.id:
         abort(403)
 
+    # filename_stored agora é 'uploads/...' relativo a /static
     abs_path = os.path.join(app.root_path, 'static', doc.filename_stored)
     if not os.path.isfile(abs_path):
         flash('Arquivo não encontrado no servidor.', 'danger')
@@ -397,7 +421,8 @@ def cliente_download_documento(doc_id):
 
     directory = os.path.dirname(abs_path)
     filename = os.path.basename(abs_path)
-    return send_from_directory(directory=directory, path=filename, as_attachment=True, download_name=doc.filename_original)
+    return send_from_directory(directory=directory, path=filename,
+                               as_attachment=True, download_name=doc.filename_original)
 
 
 @app.route('/cliente/documento/<int:doc_id>/excluir', methods=['POST'])
@@ -412,6 +437,7 @@ def cliente_excluir_documento(doc_id):
         if os.path.isfile(abs_path):
             os.remove(abs_path)
     except Exception:
+        # mesmo que falhe em remover o arquivo físico, apaga o registro
         pass
 
     id_cliente = doc.id_cliente
